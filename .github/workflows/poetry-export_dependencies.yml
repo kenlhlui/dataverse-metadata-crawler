@@ -57,7 +57,6 @@ jobs:
         run: |
           # Stage all changes before pulling
           git add requirements.txt poetry.lock
-          git commit -m "chore: update requirements.txt and poetry.lock [skip ci]"
 
           # Check if there are staged changes
           if git diff --cached --quiet; then
