@@ -139,6 +139,9 @@ class Parsing:
 
         Returns:
             dict: A new dictionary with keys replaced by the value of 'datasetId'.
+
+        Notes:
+            #! This is a temporary fix for the issue where the key is not the datasetId.
         """
         new_dict = {}
         for old_key, value in dictionary.items():
@@ -155,10 +158,9 @@ class Parsing:
         """Add path_info to the metadata dictionary, handling nested structures."""
         ds_dict_copy = ds_dict.copy()
         for pid_key, pid_value in list(ds_dict_copy.items()):
-            pid_key_str = str(pid_key)
             # Traverse the meta_dict to find matching datasetId
             for _meta_key, meta_value in self.meta_dict.items():
-                if isinstance(meta_value, dict) and meta_value.get('data', {}).get('datasetId') == int(pid_key_str):
+                if isinstance(meta_value, dict) and meta_value.get('data', {}).get('datasetId') == int(pid_key):
                     # Add path_info to the appropriate nested dictionary
                     meta_value['path_info'] = pid_value
                     # Remove from ds_dict_copy
