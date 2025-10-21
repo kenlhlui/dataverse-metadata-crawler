@@ -3,7 +3,7 @@ name = "dataverse-metadata-crawler"
 version = "0.1.6"
 description = "A Python CLI tool for bulk extracting and exporting metadata from Dataverse repositories' collections to JSON and CSV formats."
 authors = [{ name = "Ken Lui", email = "kenlh.lui@utoronto.ca" }]
-requires-python = "~=3.10"
+requires-python = ">=3.10"
 readme = "README.md"
 license = "MIT"
 dependencies = [
@@ -11,7 +11,7 @@ dependencies = [
     "orjson>=3.10.14,<4",
     "asyncio>=3.4.3,<4",
     "jmespath>=1.0.1,<2",
-    "typer>=0.13.1,<0.14",
+    "typer>=0.13.1",
     "jinja2>=3.1.4,<4",
     "ipykernel>=6.29.5,<7",
     "pandas>=2.2.3,<3",
@@ -26,6 +26,9 @@ dev = ["ipykernel>=6.29.5,<7"]
 
 [tool.uv]
 package = false
+
+[tool.hatch.build.targets.wheel]
+packages = ["dvmeta"]
 
 [build-system]
 requires = ["hatchling"]
