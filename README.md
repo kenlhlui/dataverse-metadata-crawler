@@ -66,7 +66,7 @@ to launch the crawler directly in your web browser—no Git or Python installati
 
 6. Install dependencies
    ```sh
-   pip install -r requirements.txt
+   pip install -e .
    ```
 
 ## 🛠️Usage
@@ -175,7 +175,7 @@ BibTeX:
   month = {June},
   title = {Dataverse Metadata Crawler},
   url = {https://github.com/scholarsportal/dataverse-metadata-crawler},
-  version = {0.1.6},
+  version = {0.1.7},
   year = {2025}
 }
 ```
