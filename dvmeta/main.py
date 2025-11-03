@@ -10,7 +10,6 @@ from cli_validation import validate_collection_data
 from cli_validation import validate_collections_tree
 from cli_validation import validate_connection
 from cli_validation import validate_spreadsheet_option
-from cli_validation import validate_version_type
 from custom_logging import CustomLogger
 from dirmanager import DirManager
 from export_manager import ExportManager
