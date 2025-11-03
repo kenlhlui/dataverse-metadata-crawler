@@ -17,14 +17,15 @@ class LoguruLogger:
         # Remove existing handlers
         logger.remove()
 
-        # Add the formatter
-        log_format = '<green>{time:YYYY-MM-DD HH:mm:ss}</green> - <level>{message}</level>'
+        # Add the console log format with color
+        console_log_format: str = '<green>[{time:YYYY-MM-DD HH:mm:ss}]</green> - <level>{message}</level>'
 
         # Add the console handler
         logger.add(
             sink=lambda msg: print(msg, end=''),
+            colorize=True,
             level=log_level,
-            format=log_format,
+            format=console_log_format,
         )
 
         # Add the file handler if log_file_dir is provided
