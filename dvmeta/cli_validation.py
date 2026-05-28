@@ -1,18 +1,15 @@
 """This module contains functions for validating command line arguments and environment variables."""
 
-import re
-
 from click import MissingParameter
 from httpx import Response
 from loguru import logger
+from pydantic import ValidationError
 from typer import BadParameter
 
 from dvmeta.httpxclient import HttpxClient
 from dvmeta.models import CollectionData
 from dvmeta.models import CollectionsTreeResponseData
-
-
-# Set up logging
+from dvmeta.models import DatasetVersion
 
 
 def validate_spreadsheet_option(value: bool, dvdfds_metadata: bool) -> bool:
@@ -31,27 +28,27 @@ def validate_spreadsheet_option(value: bool, dvdfds_metadata: bool) -> bool:
     return value
 
 
-def validate_version_type(value: str) -> str:
+def validate_version_type(value: str) -> str | float:
     """Validate the value of --version argument.
 
     Args:
         value (str): Value of --version argument.
 
     Returns:
-        str: Value of --version argument if it is valid.
+        str | float: Value of --version argument if it is valid.
 
     Raises:
         BadParameter: If the value is not valid.
     """
-    valid_special_versions = {'draft', 'latest', 'latest-published'}
+    value = value.lower().strip()
 
-    # Normalize and validate the input
-    value = str(value).lower().strip()
-
-    if value in valid_special_versions or re.match(r'^\d+(\.\d+)?$', value):
-        return value
-    msg = f'Invalid value for --version: "{value}".\nMust be "draft", "latest", "latest-published", or a version number like "x" or "x.y".'  # noqa: E501
-    raise BadParameter(msg)
+    try:
+        model = DatasetVersion.model_validate({'version': value})
+        return model.version
+    except ValidationError:
+        msg = 'Must be "draft", "latest", "latest-published", or a number like "1" or "1.2".'
+        msg = f'Invalid version: {value}. Must be "draft", "latest", "latest-published", or a number like "1" or "1.2".'
+        raise BadParameter(msg)
 
 
 def validate_basic_input(dvdfds_matadata_option: bool, permission_option: bool) -> None:

@@ -1,4 +1,6 @@
-"""Models for the API responses"""
+"""Models for the API responses."""
+
+from typing import Literal
 
 from pydantic import BaseModel
 from pydantic import Field
@@ -24,3 +26,9 @@ class CollectionsTreeResponseData(BaseModel):
 
     status: str
     data: CollectionData | None = Field(default=None, description='The collections tree data')
+
+
+class DatasetVersion(BaseModel):
+    """Permitted dataset version type."""
+
+    version: Literal['draft', 'latest', 'latest-published'] | float | int
