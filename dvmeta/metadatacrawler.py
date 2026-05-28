@@ -5,12 +5,7 @@ from urllib.parse import urljoin
 
 import httpx
 
-from dvmeta.custom_logging import CustomLogger
 from dvmeta.httpxclient import HttpxClient
-
-
-# Set up logging
-logger = CustomLogger.get_logger(__name__)
 
 
 class MetaDataCrawler:

@@ -4,16 +4,15 @@ import re
 
 from click import MissingParameter
 from httpx import Response
+from loguru import logger
 from typer import BadParameter
 
-from dvmeta.custom_logging import CustomLogger
 from dvmeta.httpxclient import HttpxClient
 from dvmeta.models import CollectionData
 from dvmeta.models import CollectionsTreeResponseData
 
 
 # Set up logging
-logger = CustomLogger.get_logger(__name__)
 
 
 def validate_spreadsheet_option(value: bool, dvdfds_metadata: bool) -> bool:

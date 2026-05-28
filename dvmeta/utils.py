@@ -9,15 +9,11 @@ from typing import Any
 import jmespath
 import orjson
 from dotenv import load_dotenv
+from loguru import logger
 
-from dvmeta.custom_logging import CustomLogger
 from dvmeta.dirmanager import DirManager
 from dvmeta.models import CollectionData
 from dvmeta.timestamp import Timestamp
-
-
-# Initialize the logger
-logger = CustomLogger().get_logger(__name__)
 
 
 def count_key(key: dict | list | tuple) -> int:

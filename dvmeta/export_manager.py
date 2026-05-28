@@ -2,12 +2,7 @@
 
 from pathlib import Path
 
-from dvmeta.custom_logging import CustomLogger
 from dvmeta.utils import orjson_export
-
-
-# Set up logging
-logger = CustomLogger.get_logger(__name__)
 
 
 class ExportManager:
