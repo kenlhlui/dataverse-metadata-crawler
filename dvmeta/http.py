@@ -123,11 +123,12 @@ class HttpxClient:
         except (httpx.HTTPStatusError, httpx.RequestError):
             return False
 
-    def sync_get(self, url: str) -> httpx.Response | None:
+    def sync_get(self, url: str, params: dict | None = None) -> httpx.Response | None:
         """Synchronous GET request.
 
         Args:
             url (str): URL to GET
+            parameters (dict | None): Additional parameters for the GET request
 
         Returns:
             httpx.Response | None: Response object or None if error
@@ -135,7 +136,7 @@ class HttpxClient:
         try:
             # Create a new client for each request to avoid the "closed client" issue
             with httpx.Client(timeout=None, headers=dict(self.config.headers)) as client:
-                response = client.get(url)
+                response = client.get(url, params=params)
                 return response if response.status_code == self.httpx_success_status else None
         except (httpx.HTTPStatusError, httpx.RequestError):
             return httpx.Response(
