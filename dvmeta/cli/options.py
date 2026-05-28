@@ -2,7 +2,7 @@
 
 import typer
 
-from dvmeta.cli_validation import validate_version_type
+from dvmeta.cli.validation import validate_version_type
 
 
 class TyperOptions:

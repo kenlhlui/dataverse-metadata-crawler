@@ -5,7 +5,7 @@ from urllib.parse import urljoin
 
 import httpx
 
-from dvmeta.httpxclient import HttpxClient
+from dvmeta.http import HttpxClient
 
 
 class MetaDataCrawler:

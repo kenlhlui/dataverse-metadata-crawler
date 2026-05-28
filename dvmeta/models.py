@@ -32,3 +32,14 @@ class DatasetVersion(BaseModel):
     """Permitted dataset version type."""
 
     version: Literal['draft', 'latest', 'latest-published'] | float | int
+
+
+class Config(BaseModel):
+    """Model for the configuration settings."""
+
+    api_key: str | None = None
+    base_url: str
+    version: str
+    collection_alias: str
+    collection_id: int | str | None = None
+    collection_name: str | None = None

@@ -6,7 +6,7 @@ from loguru import logger
 from pydantic import ValidationError
 from typer import BadParameter
 
-from dvmeta.httpxclient import HttpxClient
+from dvmeta.http import HttpxClient
 from dvmeta.models import CollectionData
 from dvmeta.models import CollectionsTreeResponseData
 from dvmeta.models import DatasetVersion
