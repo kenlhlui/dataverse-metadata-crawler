@@ -4,6 +4,7 @@ import math
 import os
 from hashlib import sha256
 from pathlib import Path
+
 import jmespath
 import orjson
 from dotenv import load_dotenv
@@ -12,7 +13,7 @@ from loguru import logger
 from dvmeta.dirmanager import DirManager
 from dvmeta.models import CollectionData
 from dvmeta.models import Config
-from dvmeta.timestamp import Timestamp
+from dvmeta.timestamp import get_file_timestamp
 
 
 def count_key(key: dict | list | tuple) -> int:
@@ -91,7 +92,7 @@ def orjson_export(data_dict: dict, file_name: str) -> tuple:
         tuple(Path, str): A tuple containing the path to the created json file and its checksum.
     """
     json_dir = DirManager().json_files_dir()
-    json_file_path = Path(json_dir, f'{file_name}_{Timestamp().get_file_timestamp()}.json')
+    json_file_path = Path(json_dir, f'{file_name}_{get_file_timestamp()}.json')
     if data_dict:
         with json_file_path.open('wb') as file:  # Open file in binary write mode
             file.write(orjson.dumps(data_dict, option=orjson.OPT_INDENT_2 | orjson.OPT_NON_STR_KEYS))
@@ -113,11 +114,7 @@ def load_env() -> Config:
     load_dotenv()
     api_key = os.getenv('API_KEY') or None
     base_url = os.getenv('BASE_URL', '')
-    headers = (
-        {'X-Dataverse-key': api_key, 'Accept': 'application/json'}
-        if api_key
-        else {'Accept': 'application/json'}
-    )
+    headers = {'X-Dataverse-key': api_key, 'Accept': 'application/json'} if api_key else {'Accept': 'application/json'}
     return Config(api_key=api_key, base_url=base_url, headers=headers)
 
 

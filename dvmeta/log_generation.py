@@ -7,16 +7,17 @@ from loguru import logger
 
 from dvmeta.dirmanager import DirManager
 from dvmeta.models import Config
-from dvmeta.timestamp import Timestamp
+from dvmeta.timestamp import Timestamps
+from dvmeta.timestamp import get_display_time
+from dvmeta.timestamp import get_elapsed_time
+from dvmeta.timestamp import get_file_timestamp
 from dvmeta.utils import count_files_size
 from dvmeta.utils import count_key
 
 
 def write_to_log(  # noqa:  PLR0913
     config: Config,
-    start_time_display: str,
-    end_time_display: str,
-    elapsed_time: str,
+    timestamps: Timestamps,
     meta_dict: dict,
     collections_tree_flatten: dict,
     failed_metadata_ids: dict,
@@ -27,9 +28,7 @@ def write_to_log(  # noqa:  PLR0913
 
     Args:
         config (dict): Configuration dictionary
-        start_time_display (str): Start time of the crawl
-        end_time_display (str): End time of the crawl
-        elapsed_time (str): Elapsed time of the crawl
+        timestamps (Timestamps): Timestamps object containing start and end times
         meta_dict (dict): Metadata dictionary
         collections_tree_flatten (dict): Flattened collections tree
         failed_metadata_ids (dict): Dictionary of failed metadata IDs
@@ -42,9 +41,9 @@ def write_to_log(  # noqa:  PLR0913
     report = Template(read_template())
     rendered = report.render(
         config=config,
-        start_time_display=start_time_display,
-        end_time_display=end_time_display,
-        elapsed_time=elapsed_time,
+        start_time_display=get_display_time(timestamps.start_time),
+        end_time_display=get_display_time(timestamps.end_time),
+        elapsed_time=get_elapsed_time(timestamps.start_time, timestamps.end_time),
         meta_dict=count_key(meta_dict),
         collections_tree_flatten=count_key(collections_tree_flatten),
         pid_dict_dd=count_key(pid_dict_dd),
@@ -54,7 +53,7 @@ def write_to_log(  # noqa:  PLR0913
         json_file_checksum_dict=export_manager_data,
     )
 
-    log_file_path = f'{DirManager().log_files_dir()}/log_{Timestamp().get_file_timestamp()}.txt'
+    log_file_path = f'{DirManager().log_files_dir()}/log_{get_file_timestamp()}.txt'
 
     with Path(log_file_path).open('w', encoding='utf-8') as file:
         file.write(rendered)

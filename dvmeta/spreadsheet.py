@@ -10,7 +10,7 @@ from loguru import logger
 
 from dvmeta.dirmanager import DirManager
 from dvmeta.models import Config
-from dvmeta.timestamp import Timestamp
+from dvmeta.timestamp import get_file_timestamp
 from dvmeta.utils import convert_size
 from dvmeta.utils import gen_checksum
 from dvmeta.utils import list_to_string
@@ -344,7 +344,7 @@ class Spreadsheet:
         df = self._reorder_df_columns(df)
 
         # Create the CSV file
-        csv_file_path = Path(self.csv_file_dir).joinpath(f'ds_metadata_{Timestamp().get_file_timestamp()}.csv')
+        csv_file_path = Path(self.csv_file_dir).joinpath(f'ds_metadata_{get_file_timestamp()}.csv')
 
         df.to_csv(csv_file_path, index=False)
 

@@ -18,7 +18,8 @@ from dvmeta.crawler import MetaDataCrawler
 from dvmeta.custom_logging import CustomLogger
 from dvmeta.dirmanager import DirManager
 from dvmeta.log_generation import write_to_log
-from dvmeta.timestamp import Timestamp
+from dvmeta.timestamp import Timestamps
+from dvmeta.timestamp import get_current_time
 from dvmeta.utils import load_env
 from dvmeta.utils import update_config_with_collection_data
 
@@ -42,7 +43,7 @@ def main(
     """A Python CLI tool for extracting and exporting metadata from Dataverse repositories to JSON and CSV formats."""
     CustomLogger.setup_logging(DirManager().log_files_dir()) if debug_log else CustomLogger.setup_logging()
 
-    timestamp = Timestamp()
+    timestamps = Timestamps(start_time=get_current_time())
 
     config = load_env()
     config.collection_alias = collection_alias
@@ -75,12 +76,12 @@ def main(
         run_crawl(config, metadata_crawler, collections_tree, options)
     )
 
+    timestamps.end_time = get_current_time()
+
     if log:
         write_to_log(
             config,
-            timestamp.get_display_time(timestamp.start_time),
-            timestamp.get_display_time(timestamp.end_time),
-            timestamp.get_elapsed_time(),
+            timestamps,
             meta_dict,
             collections_tree_flatten,
             failed_metadata_uris,
