@@ -72,9 +72,7 @@ def main(
         spreadsheet=spreadsheet,
         failed=failed,
     )
-    meta_dict, export_manager_data, failed_metadata_uris, pid_dict_dd, collections_tree_flatten = asyncio.run(
-        run_crawl(config, metadata_crawler, collections_tree, options)
-    )
+    crawl_result = asyncio.run(run_crawl(config, metadata_crawler, collections_tree, options))
 
     timestamps.end_time = get_current_time()
 
@@ -82,11 +80,7 @@ def main(
         write_to_log(
             config,
             timestamps,
-            meta_dict,
-            collections_tree_flatten,
-            failed_metadata_uris,
-            pid_dict_dd,
-            export_manager_data,
+            crawl_result,
         )
 
     logger.info('✅ Crawling process completed successfully.')

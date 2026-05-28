@@ -5,6 +5,7 @@ from pathlib import Path
 from jinja2 import Template
 from loguru import logger
 
+from dvmeta.crawl_result import CrawlResult
 from dvmeta.dirmanager import DirManager
 from dvmeta.models import Config
 from dvmeta.timestamp import Timestamps
@@ -18,22 +19,14 @@ from dvmeta.utils import count_key
 def write_to_log(  # noqa:  PLR0913
     config: Config,
     timestamps: Timestamps,
-    meta_dict: dict,
-    collections_tree_flatten: dict,
-    failed_metadata_ids: dict,
-    pid_dict_dd: dict,
-    export_manager_data: list[dict],
+    crawl_result: CrawlResult,
 ) -> None:
     """Write the crawl log to a file.
 
     Args:
         config (dict): Configuration dictionary
         timestamps (Timestamps): Timestamps object containing start and end times
-        meta_dict (dict): Metadata dictionary
-        collections_tree_flatten (dict): Flattened collections tree
-        failed_metadata_ids (dict): Dictionary of failed metadata IDs
-        pid_dict_dd (dict): Dictionary of deacessioned/draft datasets
-        export_manager_data (dict): Dictionary of JSON file checksums
+        crawl_result (CrawlResult): Result object containing all crawled data
 
     Returns:
         str: Path to the log file
@@ -44,13 +37,13 @@ def write_to_log(  # noqa:  PLR0913
         start_time_display=get_display_time(timestamps.start_time),
         end_time_display=get_display_time(timestamps.end_time),
         elapsed_time=get_elapsed_time(timestamps.start_time, timestamps.end_time),
-        meta_dict=count_key(meta_dict),
-        collections_tree_flatten=count_key(collections_tree_flatten),
-        pid_dict_dd=count_key(pid_dict_dd),
-        failed_metadata_ids=count_key(failed_metadata_ids),
-        file_num=count_files_size(meta_dict)[0],
-        file_size=count_files_size(meta_dict)[1],
-        json_file_checksum_dict=export_manager_data,
+        meta_dict=count_key(crawl_result.meta_dict),
+        collections_tree_flatten=count_key(crawl_result.collections_tree_flatten),
+        pid_dict_dd=count_key(crawl_result.pid_dict_dd),
+        failed_metadata_ids=count_key(crawl_result.failed_metadata_uris),
+        file_num=count_files_size(crawl_result.meta_dict)[0],
+        file_size=count_files_size(crawl_result.meta_dict)[1],
+        json_file_checksum_dict=crawl_result.export_data,
     )
 
     log_file_path = f'{DirManager().log_files_dir()}/log_{get_file_timestamp()}.txt'
