@@ -3,6 +3,7 @@
 import asyncio
 
 import typer
+from loguru import logger
 
 from dvmeta.cli_validation import validate_api_token_presence
 from dvmeta.cli_validation import validate_basic_input
@@ -43,7 +44,6 @@ def main(
     """A Python CLI tool for extracting and exporting metadata from Dataverse repositories to JSON and CSV formats."""
     # Initialize the custom logger in the cli
     CustomLogger.setup_logging(DirManager().log_files_dir()) if debug_log else CustomLogger.setup_logging()
-    logger = CustomLogger.get_logger(__name__)
 
     # Create a start time stamp
     timestamp = Timestamp()
