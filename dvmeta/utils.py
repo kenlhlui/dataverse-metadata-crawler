@@ -1,4 +1,5 @@
 """This module contains utility functions for the dvmeta package."""
+
 import math
 import os
 from hashlib import sha256
@@ -99,55 +100,12 @@ def orjson_export(data_dict: dict, file_name: str) -> tuple:
         with json_file_path.open('wb') as file:  # Open file in binary write mode
             file.write(orjson.dumps(data_dict, option=orjson.OPT_INDENT_2 | orjson.OPT_NON_STR_KEYS))
         checksum = gen_checksum(json_file_path)
-        logger.print(f'Exported {file_name} to json file: {json_file_path}'
-              f'\nChecksum (SHA-256): {checksum}')
+        logger.print(f'Exported {file_name} to json file: {json_file_path}\nChecksum (SHA-256): {checksum}')
 
         return json_file_path, checksum
     logger.print(f'{file_name} is empty, no json file is created.')
 
     return None, None
-
-
-def flatten_collection(readdict, path_name='', path_ids=[]) -> dict:
-    """Flatten a nested collection in a dictionary.
-
-    Args:
-        readdict (dict): The dictionary to flatten.
-        path_name (str): The path name.
-        path_ids (list): The path IDs.
-
-    Returns:
-        dict: The flattened dictionary.
-    """
-    write_dict = {}
-    dictionary_data = readdict['data']
-
-    def loop_item(dictionary_data, path_name='', path_ids=[]):
-        """Loop through the items in the dictionary and flatten them.
-
-        Args:
-            dictionary_data (dict): The dictionary to loop through.
-            path_name (str): The path name.
-            path_ids (list): The path IDs.
-
-        Returns:
-            dict: The flattened dictionary.
-        """
-        for item in dictionary_data['children']:
-            new_item = item.copy()
-
-            current_path_ids = path_ids + [item['id']]
-
-            new_item['pathIds'] = current_path_ids
-            new_item['path'] = f"{path_name}/{item['name']}" if path_name else item['name']
-            new_item.pop('children', None)
-            write_dict[item['id']] = new_item
-            if 'children' in item:
-                loop_item(item, new_item['path'], current_path_ids)
-        return write_dict
-    if 'children' not in dictionary_data or not dictionary_data['children']:
-        return {}
-    return loop_item(dictionary_data, path_name, path_ids)
 
 
 def load_env() -> dict:
