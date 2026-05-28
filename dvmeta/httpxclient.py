@@ -1,15 +1,11 @@
 """HTTP client class for making GET requests."""
+
 import asyncio
 from types import TracebackType
-from typing import Optional
 from urllib.parse import urljoin
 
 import httpx
-from custom_logging import CustomLogger
-
-
-# Set up logging
-logger = CustomLogger.get_logger(__name__)
+from loguru import logger
 
 
 class HttpxClient:
@@ -41,10 +37,7 @@ class HttpxClient:
         return self
 
     def __exit__(
-        self,
-        exc_type: Optional[type[BaseException]],
-        exc_val: Optional[BaseException],
-        exc_tb: Optional[TracebackType]
+        self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: TracebackType | None
     ) -> None:
         """Exit context manager and cleanup resources.
 
@@ -61,10 +54,9 @@ class HttpxClient:
         """Enter asynchronous context manager."""
         return self
 
-    async def __aexit__(self,
-                        exc_type: Optional[type[BaseException]],
-                        exc_val: Optional[BaseException],
-                        exc_tb: Optional[TracebackType]) -> None:
+    async def __aexit__(
+        self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: TracebackType | None
+    ) -> None:
         """Exit asynchronous context manager and cleanup resources."""
         await self.async_client.aclose()
         self.sync_client.close()
@@ -88,10 +80,10 @@ class HttpxClient:
             except (httpx.HTTPStatusError, httpx.RequestError):
                 # print(f'HTTP request Error for {url}: {exc}')
                 return httpx.Response(
-                status_code=500,  # Server error as a fallback
-                text='Error occurred during request',
-                request=httpx.Request('GET', url)
-            )
+                    status_code=500,  # Server error as a fallback
+                    text='Error occurred during request',
+                    request=httpx.Request('GET', url),
+                )
 
     def authenticate_api_key(self) -> bool:
         """Authenticate the API key for the Dataverse repository.
@@ -147,7 +139,7 @@ class HttpxClient:
             return httpx.Response(
                 status_code=500,  # Server error as a fallback
                 text='Error occurred during request',
-                request=httpx.Request('GET', url)
+                request=httpx.Request('GET', url),
             )
 
     async def async_get(self, url_list: list) -> list:

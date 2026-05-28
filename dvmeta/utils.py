@@ -8,11 +8,12 @@ from typing import Any
 
 import jmespath
 import orjson
-from custom_logging import CustomLogger
-from dirmanager import DirManager
 from dotenv import load_dotenv
-from models import CollectionData
-from timestamp import Timestamp
+
+from dvmeta.custom_logging import CustomLogger
+from dvmeta.dirmanager import DirManager
+from dvmeta.models import CollectionData
+from dvmeta.timestamp import Timestamp
 
 
 # Initialize the logger
@@ -100,10 +101,10 @@ def orjson_export(data_dict: dict, file_name: str) -> tuple:
         with json_file_path.open('wb') as file:  # Open file in binary write mode
             file.write(orjson.dumps(data_dict, option=orjson.OPT_INDENT_2 | orjson.OPT_NON_STR_KEYS))
         checksum = gen_checksum(json_file_path)
-        logger.print(f'Exported {file_name} to json file: {json_file_path}\nChecksum (SHA-256): {checksum}')
+        logger.info(f'Exported {file_name} to json file: {json_file_path}\nChecksum (SHA-256): {checksum}')
 
         return json_file_path, checksum
-    logger.print(f'{file_name} is empty, no json file is created.')
+    logger.info(f'{file_name} is empty, no json file is created.')
 
     return None, None
 

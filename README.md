@@ -100,13 +100,17 @@ python3 dvmeta/main.py [-a AUTH] [-l] [-d] [-p] [-f] [-e] [-s] -c COLLECTION_ALI
 ### Examples
 ```sh
 # Export the metadata of latest version of datasets under collection 'demo' to JSON
-python3 dvmeta/main.py -c demo -v latest -d
+# python3 dvmeta/main.py -c demo -v latest -d
+python3 -m dvmeta.main -c demo -v latest -d
 
 # Export the metadata of version 1.0 of all datasets under collection 'demo' to JSON and CSV
-python3 dvmeta/main.py -c demo -v 1.0 -d -s
+# python3 dvmeta/main.py -c demo -v 1.0 -d -s
+python3 -m dvmeta.main -c demo -v 1.0 -d -s
 
 # Export the metadata and permission metadata of version 1.0 of all datasets under collection 'demo' to JSON and CSV, with the API token specified in the CLI interface
-python3 dvmeta/main.py -c demo -v 1.0 -d -s -p -a xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx
+# python3 dvmeta/main.py -c demo -v 1.0 -d -s -p -a xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx
+python3 -m dvmeta.main -c demo -v latest -d -s -p -a xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx
+
 ```
 
 ## 📂Output Structure

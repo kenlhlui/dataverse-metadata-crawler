@@ -2,11 +2,8 @@
 
 from pathlib import Path
 
-from custom_logging import CustomLogger
+from loguru import logger
 
-
-# Set up logging
-logger = CustomLogger.get_logger(__name__)
 
 class DirManager:
     """Class to manage directories and files in the data vault."""
@@ -24,10 +21,11 @@ class DirManager:
             path (Path): The path to the directory.
 
         Returns:
-            str: The path to the directory.
+            Path: The path to the directory.
         """
         if not Path.exists(path):
             Path(path).mkdir(parents=True, exist_ok=True)
+            logger.debug(f'Created directory: {path}')
         return path
 
     def json_files_dir(self) -> Path:

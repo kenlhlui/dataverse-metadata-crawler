@@ -1,10 +1,12 @@
 """Crawl metadata of datasets in a collection."""
+
 from urllib.parse import urlencode
 from urllib.parse import urljoin
 
 import httpx
-from custom_logging import CustomLogger
-from httpxclient import HttpxClient
+
+from dvmeta.custom_logging import CustomLogger
+from dvmeta.httpxclient import HttpxClient
 
 
 # Set up logging
@@ -77,7 +79,7 @@ class MetaDataCrawler:
 
     def _parse_dataset_content_url(self, identifier: str) -> str:
         # Note: This URL has a specific format with ':' placeholders
-        path = f"/api/datasets/:persistentId/versions/:{self.config['VERSION']}"
+        path = f'/api/datasets/:persistentId/versions/:{self.config["VERSION"]}'
         query_params = {'persistentId': identifier}
         return self._build_url(path, query_params)
 

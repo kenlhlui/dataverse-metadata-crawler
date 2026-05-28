@@ -1,7 +1,8 @@
 """Typer options with types and defaults for the CLI application."""
 
 import typer
-from cli_validation import validate_version_type
+
+from dvmeta.cli_validation import validate_version_type
 
 
 class TyperOptions:

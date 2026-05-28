@@ -3,22 +3,25 @@
 import asyncio
 
 import typer
-import utils
-from cli_validation import validate_api_token_presence
-from cli_validation import validate_basic_input
-from cli_validation import validate_collection_data
-from cli_validation import validate_collections_tree
-from cli_validation import validate_connection
-from cli_validation import validate_spreadsheet_option
-from custom_logging import CustomLogger
-from dirmanager import DirManager
-from export_manager import ExportManager
-from log_generation import write_to_log
-from metadatacrawler import MetaDataCrawler
-from parsing import Parsing
-from spreadsheet import Spreadsheet
-from timestamp import Timestamp
-from typer_options import TyperOptions
+
+from dvmeta.cli_validation import validate_api_token_presence
+from dvmeta.cli_validation import validate_basic_input
+from dvmeta.cli_validation import validate_collection_data
+from dvmeta.cli_validation import validate_collections_tree
+from dvmeta.cli_validation import validate_connection
+from dvmeta.cli_validation import validate_spreadsheet_option
+from dvmeta.custom_logging import CustomLogger
+from dvmeta.dirmanager import DirManager
+from dvmeta.export_manager import ExportManager
+from dvmeta.log_generation import write_to_log
+from dvmeta.metadatacrawler import MetaDataCrawler
+from dvmeta.parsing import Parsing
+from dvmeta.spreadsheet import Spreadsheet
+from dvmeta.timestamp import Timestamp
+from dvmeta.typer_options import TyperOptions
+from dvmeta.utils import count_key
+from dvmeta.utils import load_env
+from dvmeta.utils import update_config_with_collection_data
 
 
 app = typer.Typer()
@@ -46,7 +49,7 @@ def main(
     timestamp = Timestamp()
 
     # Load the environment variables
-    config: dict = utils.load_env()
+    config: dict = load_env()
 
     config['COLLECTION_ALIAS'] = collection_alias
     config['VERSION'] = version
@@ -79,10 +82,10 @@ def main(
     collection_data = validate_collection_data(collections_tree)
 
     # Update config with validated collection data
-    config = utils.update_config_with_collection_data(config, collection_data)
+    config = update_config_with_collection_data(config, collection_data)
 
     # Start the main function
-    logger.print('Starting the main crawling function...')
+    logger.info('Starting the main crawling function...')
 
     async def main_crawler():
         # Initialize empty dict and list to store metadata
@@ -91,7 +94,7 @@ def main(
         # Initialize the Parsing class
         parsing = Parsing(config, collections_tree)
 
-        logger.print('Getting basic metadata of datasets in across dataverses (incl. all children)...')
+        logger.info('Getting basic metadata of datasets in across dataverses (incl. all children)...')
         dataverse_contents, failed_dataverse_contents = await metadata_crawler.get_dataverse_contents(
             parsing.collection_id_list
         )
@@ -112,7 +115,7 @@ def main(
 
         if dvdfds_matadata:
             # Export dataverse_contents
-            logger.print('Crawling Representation and File metadata of datasets...')
+            logger.info('Crawling Representation and File metadata of datasets...')
             pid_list = [item['datasetPersistentId'] for item in ds_dict.values()]
             meta_dict, failed_metadata_uris = await metadata_crawler.get_datasets_meta(pid_list)
 
@@ -132,7 +135,7 @@ def main(
                 export_manager.export(failed_metadata_uris, 'failed_metadata_uris')
 
         if permission:
-            logger.print('Crawling Permission metadata of datasets...')
+            logger.info('Crawling Permission metadata of datasets...')
             ds_id_list = [item['datasetId'] for item in ds_dict.values()]
             permission_dict, failed_permission_uris = await metadata_crawler.get_datasets_permissions(ds_id_list)
 
@@ -140,9 +143,9 @@ def main(
                 not dvdfds_matadata
             ):  # Delay the merging of permission metadata until the representation/file metadata is crawled
                 # Export the permission metadata to a JSON file
-                export_manager.export(permission_dict, 'permission_dict')
-                logger.print(
-                    f'Successfully crawled permission metadata for {utils.count_key(permission_dict)} datasets in total.'
+                export_manager.export(permission_dict, export_type='permission_dict')
+                logger.info(
+                    f'Successfully crawled permission metadata for {count_key(permission_dict)} datasets in total.'
                 )
 
                 # Export the pid_dict to a JSON file, if dfdfds_metadata is not provided
@@ -155,8 +158,8 @@ def main(
         if meta_dict:
             # Export the metadata to a JSON file
             export_manager.export(meta_dict, 'ds_metadata')
-            logger.print(
-                f'Successfully crawled {utils.count_key(meta_dict)} metadata of dataset representation and file in total.'
+            logger.info(
+                f'Successfully crawled {count_key(meta_dict)} metadata of dataset representation and file in total.'
             )
 
         if empty_dv:
@@ -193,7 +196,7 @@ def main(
             export_manager_data,
         )
 
-    logger.print('✅ Crawling process completed successfully.')
+    logger.info('✅ Crawling process completed successfully.')
 
 
 if __name__ == '__main__':

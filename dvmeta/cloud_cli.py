@@ -12,15 +12,9 @@ from IPython.display import display
 
 def create_env_widgets() -> tuple:
     """Creates input widgets for BASE_URL and API_KEY and returns them."""
-    base_url_widget = widgets.Text(
-        description='BASE_URL:',
-        placeholder='Enter the Base URL'
-    )
+    base_url_widget = widgets.Text(description='BASE_URL:', placeholder='Enter the Base URL')
 
-    api_key_widget = widgets.Password(
-        description='API_KEY:',
-        placeholder='Enter your API Key'
-    )
+    api_key_widget = widgets.Password(description='API_KEY:', placeholder='Enter your API Key')
 
     return base_url_widget, api_key_widget
 

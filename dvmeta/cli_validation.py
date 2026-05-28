@@ -1,13 +1,15 @@
 """This module contains functions for validating command line arguments and environment variables."""
+
 import re
 
 from click import MissingParameter
-from custom_logging import CustomLogger
 from httpx import Response
-from httpxclient import HttpxClient
-from models import CollectionData
-from models import CollectionsTreeResponseData
 from typer import BadParameter
+
+from dvmeta.custom_logging import CustomLogger
+from dvmeta.httpxclient import HttpxClient
+from dvmeta.models import CollectionData
+from dvmeta.models import CollectionsTreeResponseData
 
 
 # Set up logging
@@ -95,14 +97,14 @@ def validate_connection(config: dict) -> bool:
     Raises:
         BadParameter: If connection to the repository fails.
     """
-    logger.print('Checking the connection to the Dataverse repository...')
+    logger.info('Checking the connection to the Dataverse repository...')
     client = HttpxClient(config)
 
     if config.get('API_KEY'):
         result = client.authenticate_api_key()
         if result is True:
             msg = f'Connection to the dataverse repository {config["BASE_URL"]} with API Token is successful.'
-            logger.print(msg)
+            logger.info(msg)
             return True
         if result is False:
             msg = 'Failed to authenticate the API Token with the repository. Will try to crawl without the API Token.'
@@ -116,7 +118,7 @@ def validate_connection(config: dict) -> bool:
         logger.error(msg)
         raise BadParameter(msg)
 
-    logger.print(f'Connection to the dataverse repository {config["BASE_URL"]} is successful.')
+    logger.info(f'Connection to the dataverse repository {config["BASE_URL"]} is successful.')
     return False
 
 

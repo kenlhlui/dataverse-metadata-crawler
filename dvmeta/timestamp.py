@@ -1,12 +1,7 @@
 """This module contains a class to manage timestamps."""
+
 # ruff: noqa: DTZ005
 from datetime import datetime
-
-from custom_logging import CustomLogger
-
-
-# Initialize the logger
-logger = CustomLogger().get_logger(__name__)
 
 
 class Timestamp:

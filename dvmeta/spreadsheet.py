@@ -1,20 +1,18 @@
 # ruff: noqa: PLR1733
 """A module to manage the creation of CSV files from metadata dictionaries."""
+
 from pathlib import Path
 from urllib.parse import urljoin
 
 import jmespath
 import pandas as pd
-from custom_logging import CustomLogger
-from dirmanager import DirManager
-from timestamp import Timestamp
-from utils import convert_size
-from utils import gen_checksum
-from utils import list_to_string
+from loguru import logger
 
-
-# Initialize the logger
-logger = CustomLogger().get_logger(__name__)
+from dvmeta.dirmanager import DirManager
+from dvmeta.timestamp import Timestamp
+from dvmeta.utils import convert_size
+from dvmeta.utils import gen_checksum
+from dvmeta.utils import list_to_string
 
 
 class Spreadsheet:
@@ -171,7 +169,7 @@ class Spreadsheet:
             'CM_Subject_Med': 'Medicine, Health and Life Sciences',
             'CM_Subject_Phys': 'Physics',
             'CM_Subject_SocSci': 'Social Sciences',
-            'CM_Subject_Other': 'Other'
+            'CM_Subject_Other': 'Other',
         }
         # Initialize an empty dictionary to store the result
         result_dict = {}
@@ -196,7 +194,7 @@ class Spreadsheet:
             'Meta_LS': 'biomedical',
             'Meta_Journal': 'journal',
             'Meta_CWF': 'computationalworkflow',
-            }
+        }
 
         # Loop through the metadata blocks and check if they are in the dictionary
         result_dict = {}
@@ -216,20 +214,20 @@ class Spreadsheet:
             directorylabel_count = len([file for file in file_nested_list if file.get('directoryLabel') is not None])
 
             # Get the count of categories if it is not None
-            categories_count = len([
-                file for file in file_nested_list
-                if file.get('dataFile', {}).get('categories') is not None
-            ])
+            categories_count = len(
+                [file for file in file_nested_list if file.get('dataFile', {}).get('categories') is not None]
+            )
 
             # Get the count of description if it is not None
-            description_count = len([
-                file for file in file_nested_list
-                if file.get('dataFile', {}).get('description') is not None
-            ])
+            description_count = len(
+                [file for file in file_nested_list if file.get('dataFile', {}).get('description') is not None]
+            )
 
-            return {'DF_Hierarchy': directorylabel_count,
-                    'DF_Tags': categories_count,
-                    'DF_Description': description_count}
+            return {
+                'DF_Hierarchy': directorylabel_count,
+                'DF_Tags': categories_count,
+                'DF_Description': description_count,
+            }
         return {'DF_Hierarchy': 0, 'DF_Tags': 0, 'DF_Description': 0}
 
     @staticmethod
@@ -246,7 +244,7 @@ class Spreadsheet:
                 'DS_ContribPlus': 'NA',
                 'DS_Curator': 'NA',
                 'DS_FileDown': 'NA',
-                'DS_Member': 'NA'
+                'DS_Member': 'NA',
             }
         return {'DS_Permission': True}
 
@@ -294,7 +292,9 @@ class Spreadsheet:
             jmespath_dict['RestrictedFiles'] = self._get_restricted_data_files_count(meta_dict[key])
 
             # Get the URL for the dataset
-            jmespath_dict['DatasetURL'] = urljoin(self.config['BASE_URL'], f"/dataset.xhtml?persistentId={jmespath_dict['DatasetPersistentId']}")  # noqa: E501
+            jmespath_dict['DatasetURL'] = urljoin(
+                self.config['BASE_URL'], f'/dataset.xhtml?persistentId={jmespath_dict["DatasetPersistentId"]}'
+            )  # noqa: E501
 
             # Get the dataset version
             jmespath_dict['Version'] = self._get_dataset_version(jmespath_dict)
@@ -316,7 +316,9 @@ class Spreadsheet:
             jmespath_dict.update(self._parse_permission_values(meta_dict[key]) or {})
 
             # Last step: Turn the lists in the dictionary into strings
-            jmespath_dict = {key: list_to_string(value) if isinstance(value, list) else value for key, value in jmespath_dict.items()}
+            jmespath_dict = {
+                key: list_to_string(value) if isinstance(value, list) else value for key, value in jmespath_dict.items()
+            }
 
             holding_list.append(jmespath_dict)
 
@@ -348,7 +350,6 @@ class Spreadsheet:
         # Generate a checksum for the CSV file
         checksum = gen_checksum(csv_file_path)
 
-        logger.print(f'Exported Dataset Metadata CSV: {csv_file_path}'
-              f'\nChecksum (SHA-256): {checksum}')
+        logger.info(f'Exported Dataset Metadata CSV: {csv_file_path}\nChecksum (SHA-256): {checksum}')
 
         return csv_file_path, checksum

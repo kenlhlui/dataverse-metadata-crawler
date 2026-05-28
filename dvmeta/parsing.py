@@ -1,13 +1,6 @@
 """Parsing module for parsing data from input files."""
 
-from typing import Optional
-
 import jmespath
-from custom_logging import CustomLogger
-
-
-# Set up logging
-logger = CustomLogger.get_logger(__name__)
 
 
 class Parsing:
@@ -55,12 +48,13 @@ class Parsing:
                 current_path_ids = path_ids + [item['id']]
 
                 new_item['pathIds'] = current_path_ids
-                new_item['path'] = f"{path_name}/{item['name']}" if path_name else item['name']
+                new_item['path'] = f'{path_name}/{item["name"]}' if path_name else item['name']
                 new_item.pop('children', None)
                 write_dict[item['id']] = new_item
                 if 'children' in item:
                     loop_item(item, new_item['path'], current_path_ids)
             return write_dict
+
         if 'children' not in dictionary_data or not dictionary_data['children']:
             return {}
         return loop_item(dictionary_data, path_name, path_ids)
@@ -87,7 +81,7 @@ class Parsing:
         return failed_uris
 
     @staticmethod
-    def add_permission_info(meta_dict: dict, permission_dict: Optional[dict] = None) -> dict:
+    def add_permission_info(meta_dict: dict, permission_dict: dict | None = None) -> dict:
         """Add permission_info to the metadata dictionary, handling nested structures.
 
         Args:
@@ -165,7 +159,7 @@ class Parsing:
             )
             if result:
                 for item in result:
-                    pid = f"{item['protocol']}:{item['authority']}/{item['identifier']}"
+                    pid = f'{item["protocol"]}:{item["authority"]}/{item["identifier"]}'
                     id = item['datasetId']
                     path = '/' + item['path'] if item['path'] else None
                     path_ids = item['pathIds']

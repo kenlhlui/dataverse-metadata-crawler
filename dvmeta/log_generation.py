@@ -1,16 +1,14 @@
 """Module to generate log file."""
+
 from pathlib import Path
 
-import utils
-from custom_logging import CustomLogger
-from dirmanager import DirManager
 from jinja2 import Template
-from timestamp import Timestamp
-from utils import count_files_size
+from loguru import logger
 
-
-# Initialize the logger
-logger = CustomLogger().get_logger(__name__)
+from dvmeta.dirmanager import DirManager
+from dvmeta.timestamp import Timestamp
+from dvmeta.utils import count_files_size
+from dvmeta.utils import count_key
 
 
 def write_to_log(  # noqa:  PLR0913
@@ -41,25 +39,26 @@ def write_to_log(  # noqa:  PLR0913
         str: Path to the log file
     """
     report = Template(read_template())
-    rendered = report.render(config=config,
-                             start_time_display=start_time_display,
-                             end_time_display=end_time_display,
-                             elapsed_time=elapsed_time,
-                             meta_dict=utils.count_key(meta_dict),
-                             collections_tree_flatten=utils.count_key(collections_tree_flatten),
-                             pid_dict_dd=utils.count_key(pid_dict_dd),
-                             failed_metadata_ids=utils.count_key(failed_metadata_ids),
-                             file_num=count_files_size(meta_dict)[0],
-                             file_size=count_files_size(meta_dict)[1],
-                             json_file_checksum_dict=export_manager_data
-                             )
+    rendered = report.render(
+        config=config,
+        start_time_display=start_time_display,
+        end_time_display=end_time_display,
+        elapsed_time=elapsed_time,
+        meta_dict=count_key(meta_dict),
+        collections_tree_flatten=count_key(collections_tree_flatten),
+        pid_dict_dd=count_key(pid_dict_dd),
+        failed_metadata_ids=count_key(failed_metadata_ids),
+        file_num=count_files_size(meta_dict)[0],
+        file_size=count_files_size(meta_dict)[1],
+        json_file_checksum_dict=export_manager_data,
+    )
 
     log_file_path = f'{DirManager().log_files_dir()}/log_{Timestamp().get_file_timestamp()}.txt'
 
     with Path(log_file_path).open('w', encoding='utf-8') as file:
         file.write(rendered)
 
-    return logger.print(f'The crawl log is saved at: {log_file_path}')
+    return logger.info(f'The crawl log is saved at: {log_file_path}')
 
 
 def read_template() -> str:
