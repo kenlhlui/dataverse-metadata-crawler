@@ -9,6 +9,7 @@ from typer import BadParameter
 from dvmeta.http import HttpxClient
 from dvmeta.models import CollectionData
 from dvmeta.models import CollectionsTreeResponseData
+from dvmeta.models import Config
 from dvmeta.models import DatasetVersion
 
 
@@ -66,26 +67,26 @@ def validate_basic_input(dvdfds_matadata_option: bool, permission_option: bool) 
         raise MissingParameter(msg, param_type='parameter')
 
 
-def validate_api_token_presence(permission_option: bool, config: dict) -> None:
+def validate_api_token_presence(permission_option: bool, config: Config) -> None:
     """Validate whether API_KEY is supplied when crawling permission metadata option is enabled.
 
     Args:
         permission_option (bool): Value of -p argument.
-        config (dict): The config dict
+        config (Config): The config
 
     Raises:
         MissingParameter: If the combination of options is invalid.
     """
-    if permission_option and config.get('API_KEY') is None or config.get('API_KEY') == 'None':
+    if permission_option and (config.api_key is None or config.api_key == 'None'):
         msg = 'Crawling permission metadata requires API Token. Please provide the API Token. Exiting...'
         raise MissingParameter(msg, param_type='parameter')
 
 
-def validate_connection(config: dict) -> bool:
+def validate_connection(config: Config) -> bool:
     """Validate connection to the Dataverse repository.
 
     Args:
-        config (dict): The config dictionary.
+        config (Config): The config.
 
     Returns:
         bool: True if the API key is valid, False otherwise.
@@ -96,10 +97,10 @@ def validate_connection(config: dict) -> bool:
     logger.info('Checking the connection to the Dataverse repository...')
     client = HttpxClient(config)
 
-    if config.get('API_KEY'):
+    if config.api_key:
         result = client.authenticate_api_key()
         if result is True:
-            msg = f'Connection to the dataverse repository {config["BASE_URL"]} with API Token is successful.'
+            msg = f'Connection to the dataverse repository {config.base_url} with API Token is successful.'
             logger.info(msg)
             return True
         if result is False:
@@ -110,11 +111,11 @@ def validate_connection(config: dict) -> bool:
     client = HttpxClient(config)
     result = client.authenticate_dv_connection()
     if result is False:
-        msg = f'Failed to connect to the dataverse repository: {config["BASE_URL"]}. Exiting...'
+        msg = f'Failed to connect to the dataverse repository: {config.base_url}. Exiting...'
         logger.error(msg)
         raise BadParameter(msg)
 
-    logger.info(f'Connection to the dataverse repository {config["BASE_URL"]} is successful.')
+    logger.info(f'Connection to the dataverse repository {config.base_url} is successful.')
     return False
 
 

@@ -6,13 +6,14 @@ from jinja2 import Template
 from loguru import logger
 
 from dvmeta.dirmanager import DirManager
+from dvmeta.models import Config
 from dvmeta.timestamp import Timestamp
 from dvmeta.utils import count_files_size
 from dvmeta.utils import count_key
 
 
 def write_to_log(  # noqa:  PLR0913
-    config: dict,
+    config: Config,
     start_time_display: str,
     end_time_display: str,
     elapsed_time: str,

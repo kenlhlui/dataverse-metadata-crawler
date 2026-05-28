@@ -7,15 +7,17 @@ from urllib.parse import urljoin
 import httpx
 from loguru import logger
 
+from dvmeta.models import Config
+
 
 class HttpxClient:
     """HTTP client class for making GET requests."""
 
-    def __init__(self, config: dict) -> None:
+    def __init__(self, config: Config) -> None:
         """Initialize HTTP client.
 
         Args:
-            config (dict): Configuration settings
+            config (Config): Configuration settings
             semaphore (asyncio.Semaphore): Semaphore object for limiting concurrent requests
             sync_client (httpx.Client): Synchronous HTTP client
             async_client (httpx.AsyncClient): Asynchronous HTTP client
@@ -23,8 +25,8 @@ class HttpxClient:
         """  # noqa: W505
         self.config = config
         self.semaphore = asyncio.Semaphore(10)  # 10 concurrent requests # TODO: make this configurable
-        self.sync_client = httpx.Client(timeout=None, headers=dict(config['HEADERS']))
-        self.async_client = httpx.AsyncClient(timeout=None, headers=dict(config['HEADERS']))
+        self.sync_client = httpx.Client(timeout=None, headers=dict(config.headers))
+        self.async_client = httpx.AsyncClient(timeout=None, headers=dict(config.headers))
         self.async_sleep_time = 0  # TODO: make this configurable
         self.httpx_success_status = 200
 
@@ -91,8 +93,8 @@ class HttpxClient:
         Returns:
             bool: True if the API key is valid, False otherwise
         """
-        base_url: str = self.config.get('BASE_URL', '')
-        api_key: str = self.config.get('API_KEY', '')
+        base_url: str = self.config.base_url
+        api_key: str = self.config.api_key or ''
         auth_headers: dict = {'X-Dataverse-key': api_key}
         api_endpoint: str = '/api/users/:me'
         auth_url = urljoin(base_url, api_endpoint)
@@ -111,7 +113,7 @@ class HttpxClient:
         Returns:
             bool: True if the connection is successful, False otherwise
         """
-        base_url: str = self.config.get('BASE_URL', '')
+        base_url: str = self.config.base_url
         public_url: str = urljoin(base_url, '/api/info/version')
 
         try:
@@ -132,7 +134,7 @@ class HttpxClient:
         """
         try:
             # Create a new client for each request to avoid the "closed client" issue
-            with httpx.Client(timeout=None, headers=dict(self.config['HEADERS'])) as client:
+            with httpx.Client(timeout=None, headers=dict(self.config.headers)) as client:
                 response = client.get(url)
                 return response if response.status_code == self.httpx_success_status else None
         except (httpx.HTTPStatusError, httpx.RequestError):

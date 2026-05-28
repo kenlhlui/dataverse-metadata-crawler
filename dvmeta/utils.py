@@ -4,8 +4,6 @@ import math
 import os
 from hashlib import sha256
 from pathlib import Path
-from typing import Any
-
 import jmespath
 import orjson
 from dotenv import load_dotenv
@@ -13,6 +11,7 @@ from loguru import logger
 
 from dvmeta.dirmanager import DirManager
 from dvmeta.models import CollectionData
+from dvmeta.models import Config
 from dvmeta.timestamp import Timestamp
 
 
@@ -105,25 +104,21 @@ def orjson_export(data_dict: dict, file_name: str) -> tuple:
     return None, None
 
 
-def load_env() -> dict:
+def load_env() -> Config:
     """Load the environment variables.
 
     Returns:
-        dict: A dictionary containing the environment variables
+        Config: A Config instance populated from environment variables
     """
-    # Load the environment variables
     load_dotenv()
-
-    config = {
-        'API_KEY': os.getenv('API_KEY', None),
-        'BASE_URL': os.getenv('BASE_URL'),
-        'TIMEOUT': None,
-    }
-    if config['API_KEY']:
-        config['HEADERS'] = {'X-Dataverse-key': config['API_KEY'], 'Accept': 'application/json'}
-    else:
-        config['HEADERS'] = {'Accept': 'application/json'}
-    return config
+    api_key = os.getenv('API_KEY') or None
+    base_url = os.getenv('BASE_URL', '')
+    headers = (
+        {'X-Dataverse-key': api_key, 'Accept': 'application/json'}
+        if api_key
+        else {'Accept': 'application/json'}
+    )
+    return Config(api_key=api_key, base_url=base_url, headers=headers)
 
 
 def count_files_size(read_dict: dict) -> tuple:
@@ -149,17 +144,17 @@ def count_files_size(read_dict: dict) -> tuple:
     return sum(filecount_list), sum(filesize_list)
 
 
-def update_config_with_collection_data(config: dict[str, Any], collection_data: CollectionData) -> dict[str, Any]:
-    """Update the config dictionary with collection data.
+def update_config_with_collection_data(config: Config, collection_data: CollectionData) -> Config:
+    """Update the config with collection data.
 
     Args:
-        config (dict): The config dictionary to update
+        config (Config): The config to update
         collection_data (CollectionData): The validated collection data
 
     Returns:
-        dict: The updated config
+        Config: The updated config
     """
-    config['COLLECTION_ID'] = collection_data.id
-    config['COLLECTION_ALIAS'] = collection_data.alias
-    config['COLLECTION_NAME'] = collection_data.name
+    config.collection_id = collection_data.id
+    config.collection_alias = collection_data.alias
+    config.collection_name = collection_data.name
     return config

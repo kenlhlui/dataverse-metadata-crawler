@@ -9,6 +9,7 @@ import pandas as pd
 from loguru import logger
 
 from dvmeta.dirmanager import DirManager
+from dvmeta.models import Config
 from dvmeta.timestamp import Timestamp
 from dvmeta.utils import convert_size
 from dvmeta.utils import gen_checksum
@@ -18,7 +19,7 @@ from dvmeta.utils import list_to_string
 class Spreadsheet:
     """A class to manage the creation of CSV files from metadata dictionaries."""
 
-    def __init__(self, config: dict) -> None:
+    def __init__(self, config: Config) -> None:
         """Initialize the class with the configuration settings."""
         self.config = config
         self.search_string = """{
@@ -293,7 +294,7 @@ class Spreadsheet:
 
             # Get the URL for the dataset
             jmespath_dict['DatasetURL'] = urljoin(
-                self.config['BASE_URL'], f'/dataset.xhtml?persistentId={jmespath_dict["DatasetPersistentId"]}'
+                self.config.base_url, f'/dataset.xhtml?persistentId={jmespath_dict["DatasetPersistentId"]}'
             )  # noqa: E501
 
             # Get the dataset version

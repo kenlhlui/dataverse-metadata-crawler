@@ -6,6 +6,7 @@ from urllib.parse import urljoin
 import httpx
 
 from dvmeta.http import HttpxClient
+from dvmeta.models import Config
 
 
 class MetaDataCrawler:
@@ -24,7 +25,7 @@ class MetaDataCrawler:
         _get_tree_url: Get the URL of the tree structure
     """
 
-    def __init__(self, config: dict) -> None:
+    def __init__(self, config: Config) -> None:
         """Initialize the class with the configuration settings."""
         self.config = self._define_headers(config)
         self.http_success_status = 200
@@ -36,22 +37,21 @@ class MetaDataCrawler:
         self.client = HttpxClient(self.config)
 
     @staticmethod
-    def _define_headers(config: dict) -> dict[str, str]:
+    def _define_headers(config: Config) -> Config:
         """Define the headers for the HTTP request.
 
         Args:
-            config (dict): Configuration dictionary
+            config (Config): Configuration
 
         Returns:
-            dict[str, str]: Dictionary containing the headers
+            Config: Config with updated headers
         """
         headers = {'Accept': 'application/json'}
 
-        api_key = config.get('API_KEY')
-        if api_key and str(api_key).lower() != 'none':
-            headers['X-Dataverse-key'] = api_key
+        if config.api_key and str(config.api_key).lower() != 'none':
+            headers['X-Dataverse-key'] = config.api_key
 
-        config['HEADERS'] = headers
+        config.headers = headers
 
         return config
 
@@ -65,7 +65,7 @@ class MetaDataCrawler:
         Returns:
             A properly formatted URL
         """
-        base_url = self.config['BASE_URL']
+        base_url = self.config.base_url
         url = urljoin(base_url, path)
 
         if query_params:
@@ -74,7 +74,7 @@ class MetaDataCrawler:
 
     def _parse_dataset_content_url(self, identifier: str) -> str:
         # Note: This URL has a specific format with ':' placeholders
-        path = f'/api/datasets/:persistentId/versions/:{self.config["VERSION"]}'
+        path = f'/api/datasets/:persistentId/versions/:{self.config.version}'
         query_params = {'persistentId': identifier}
         return self._build_url(path, query_params)
 
@@ -89,7 +89,7 @@ class MetaDataCrawler:
     def _parse_tree_url(self, parent_alias: str | None = None) -> str:
         path = '/api/info/metrics/tree'
         if parent_alias:
-            query_params = {'parentAlias': self.config['COLLECTION_ALIAS']}
+            query_params = {'parentAlias': self.config.collection_alias}
             return self._build_url(path, query_params)
         return self._build_url(path)
 

@@ -2,11 +2,13 @@
 
 import jmespath
 
+from dvmeta.models import Config
+
 
 class Parsing:
     """This class is used to parse the data from the input file."""
 
-    def __init__(self, config: dict, collections_tree: dict) -> None:
+    def __init__(self, config: Config, collections_tree: dict) -> None:
         """Initialize the Parsing class with configuration and collections tree."""
         self.config = config
         self.collection_tree = collections_tree
@@ -117,7 +119,7 @@ class Parsing:
         collection_id_list = [item['id'] for item in self.collections_tree_flatten.values()]
 
         # Add root collection id to collection_id_list
-        collection_id_list.append(self.config['COLLECTION_ID'])
+        collection_id_list.append(self.config.collection_id)
 
         return collection_id_list
 
@@ -165,8 +167,8 @@ class Parsing:
                     path_ids = item['pathIds']
                     dict_to_append = {
                         str(id): {  # pid needs to be converted to string if it's not already
-                            'CollectionAlias': self.config['COLLECTION_ALIAS'],
-                            'CollectionID': self.config['COLLECTION_ID'],
+                            'CollectionAlias': self.config.collection_alias,
+                            'CollectionID': self.config.collection_id,
                             'datasetPersistentId': pid,
                             'datasetId': id,
                             'path': path,

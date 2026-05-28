@@ -1,9 +1,9 @@
 --- Summary ---
-Repository base URL: {{ config.BASE_URL }}
-Collection Name: {{ config.COLLECTION_NAME }}
-Collection Alias: {{ config.COLLECTION_ALIAS }}
-Collection ID: {{ config.COLLECTION_ID }}
-Dataset Version: {{ config.VERSION }}
+Repository base URL: {{ config.base_url }}
+Collection Name: {{ config.collection_name }}
+Collection Alias: {{ config.collection_alias }}
+Collection ID: {{ config.collection_id }}
+Dataset Version: {{ config.version }}
 
 Start time: {{ start_time_display }}
 End time: {{ end_time_display }}
