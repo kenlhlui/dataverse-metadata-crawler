@@ -45,14 +45,17 @@ class MetaDataCrawler:
 
         return config
 
-    def get_all_dataverse_datasets(self) -> list:
+    def get_all_dataverse_datasets(self, metadata_source: str | None = None) -> list:
         """Get all datasets in the Dataverse collection (recursively, including all the children).
 
         Uses the Search API.
 
+        Args:
+            metadata_source (str | None): Optional filter for metadata source (e.g., 'Borealis', 'Dataverse'). This is to exclude the harvested datasets. (docs: https://github.com/IQSS/dataverse/issues/9515). If no value is provided, it will fetch all datasets regardless of the metadata source.
+
         Returns:
             list: A list of dataset metadata dictionaries
-        """
+        """  # noqa: W505, E501
         search_url = self.endpoints.search()
         params = {
             'q': '*',
@@ -64,6 +67,9 @@ class MetaDataCrawler:
             'query_entities': False,  # Make the query faster by not fetching the entities
             'show_entity_ids': True,
         }
+
+        if metadata_source:
+            params['fq'] = f'metadata_source:{metadata_source}'
 
         datasets = []
 
@@ -89,7 +95,7 @@ class MetaDataCrawler:
         return datasets
 
     def get_dataset_metadata(self, dataset_id: str | int, draft: bool = False) -> dict:
-        """Get the metdata of a dataset using the dataset Native API endpoint.
+        """Get the metadata of a dataset using the dataset Native API endpoint.
 
         Args:
             dataset_id (str | int): The database ID of the dataset
