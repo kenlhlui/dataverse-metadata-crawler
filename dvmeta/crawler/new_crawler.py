@@ -94,15 +94,18 @@ class MetaDataCrawler:
 
         return datasets
 
-    def get_dataset_metadata(self, dataset_id: str | int, draft: bool = False) -> dict:
+    async def get_dataset_metadata(self, dataset_ids: list, draft: bool = False) -> list:
         """Get the metadata of a dataset using the dataset Native API endpoint.
 
         Args:
-            dataset_id (str | int): The database ID of the dataset
+            dataset_ids (list): A list of dataset (entity) IDs
             draft (bool): Whether to fetch the draft version
+
         Returns:
-            dict: The dataset metadata
+            list: A list of dataset metadata dictionaries
         """
-        dataset_url = self.endpoints.ds_json(dataset_id, draft=draft)
-        response = self.client.sync_get(dataset_url)
-        return response.json() if response else {}
+        url_list = [self.endpoints.ds_json(dataset_id, draft=draft) for dataset_id in dataset_ids]
+
+        response = await self.client.async_get(url_list)
+
+        return [res.json() for res in response if res is not None]
