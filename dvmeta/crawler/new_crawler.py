@@ -112,6 +112,26 @@ class MetaDataCrawler:
             dataset_id: res.json() for dataset_id, res in zip(dataset_ids, response, strict=False) if res is not None
         }
 
+    async def get_oaiore_metadata(self, pids: list, version: str = 'latest') -> dict:
+        """Get the metadata of datasets in OAI_ORE format.
+
+        Docs: https://borealisdata.ca/guides/en/latest/api/native-api.html#export-metadata-of-a-dataset-in-various-formats
+
+        Note: This is mainly for getting the path of the dataset, which is not available in the dataset JSON (dataverse_json) metadata.
+
+        Args:
+            pids (list): A list of dataset (entity) IDs
+            version (str): The version of the dataset
+        """  # noqa: W505, E501
+        url_list = [
+            self.endpoints.ds_meta_exporters(persistent_id=str(pid), version=version, exporter='OAI_ORE')
+            for pid in pids
+        ]
+
+        response = await self.client.async_get(url_list)
+
+        return {pid: res.json() for pid, res in zip(pids, response, strict=False) if res is not None}
+
     async def get_dataset_permissions(self, dataset_ids: list) -> dict:
         """Get the permission metadata of a dataset using the dataset permissions API endpoint.
 

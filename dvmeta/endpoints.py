@@ -7,6 +7,7 @@ class Endpoints:
     """Endpoints for the Dataverse API."""
 
     def __init__(self, base_url: str) -> None:
+        """Initialize the Endpoints class with the base URL of the Dataverse instance."""
         self.base_url = base_url
 
     def search(self) -> str:
@@ -31,9 +32,11 @@ class Endpoints:
         Returns:
             str: The dataset JSON representation endpoint URL
         """
+        url = urljoin(self.base_url, f'/api/datasets/{dataset_id}')
+
         if draft:
-            return urljoin(self.base_url, f'/api/datasets/{dataset_id}/:draft')
-        return urljoin(self.base_url, f'/api/datasets/{dataset_id}')
+            url += '/:draft'
+        return url
 
     def ds_permissions(self, dataset_id: str | int) -> str:
         """The dataset permissions endpoint.
@@ -47,3 +50,19 @@ class Endpoints:
             str: The dataset permissions endpoint URL
         """
         return urljoin(self.base_url, f'/api/datasets/{dataset_id}/assignments')
+
+    def ds_meta_exporters(self, persistent_id: str, version: str, exporter: str = 'dataverse_json') -> str:
+        """The dataset metadata exporters endpoint.
+
+        Docs: https://borealisdata.ca/guides/en/latest/api/native-api.html#export-metadata-of-a-dataset-in-various-formats
+
+        Args:
+            persistent_id (str): The persistent ID of the dataset
+            version (str): The version of the dataset
+            exporter (str): The metadata exporter format (e.g., 'dataverse_json', 'OAI_ORE')
+
+        Returns:
+            str: The dataset metadata exporters endpoint URL
+        """
+        endpoint = f'/api/datasets/export?exporter={exporter}&persistentId={persistent_id}&version=:{version}'
+        return urljoin(self.base_url, endpoint)
