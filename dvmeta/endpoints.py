@@ -34,3 +34,16 @@ class Endpoints:
         if draft:
             return urljoin(self.base_url, f'/api/datasets/{dataset_id}/:draft')
         return urljoin(self.base_url, f'/api/datasets/{dataset_id}')
+
+    def ds_permissions(self, dataset_id: str | int) -> str:
+        """The dataset permissions endpoint.
+
+        Docs: https://borealisdata.ca/guides/en/latest/api/native-api.html#list-role-assignments-in-a-dataset
+
+        Args:
+            dataset_id (str | int): The database ID of the dataset
+
+        Returns:
+            str: The dataset permissions endpoint URL
+        """
+        return urljoin(self.base_url, f'/api/datasets/{dataset_id}/assignments')
