@@ -10,6 +10,7 @@ from dvmeta.cli.validation import validate_api_token_presence
 from dvmeta.cli.validation import validate_basic_input
 from dvmeta.cli.validation import validate_connection
 from dvmeta.cli.validation import validate_spreadsheet_option
+from dvmeta.crawl_result import CrawlResult
 from dvmeta.crawler.new_crawler import MetaDataCrawler
 from dvmeta.crawler.utils import parse_search_response
 from dvmeta.custom_logging import CustomLogger
@@ -32,7 +33,7 @@ class CLIState:
     crawler: MetaDataCrawler | None = None
     collections_tree: Any | None = None
     collection_data: Any | None = None
-    crawl_result: Any | None = None
+    crawl_result: CrawlResult | None = None
     log: bool = True
     dvdfds_metadata: bool = False
     permission: bool = False
@@ -131,11 +132,18 @@ def crawl_metadata(ctx: typer.Context) -> None:
     if state.dataset_ids is None:
         state.dataset_ids = parse_search_response(state.dataset_records)
 
-    state.crawl_result = asyncio.run(state.crawler.get_dataset_metadata(state.dataset_ids))
+    if state.crawl_result is None:
+        state.crawl_result = CrawlResult()
 
-    state.exporter.export(state.crawl_result, export_type='ds_metadata')
+    state.crawl_result.meta_dict = asyncio.run(state.crawler.get_dataset_metadata(state.dataset_ids))
 
     # TODO: Add the ORIORE crawling and path extraction here, and include it in the crawl_result
+
+    state.exporter.export(state.crawl_result.meta_dict, export_type='ds_metadata')
+
+    if state.log:
+        state.timestamps.end_time = get_current_time()
+        write_to_log(state.config, state.timestamps, state.crawl_result)
 
     logger.info('Metadata crawl completed.')
 

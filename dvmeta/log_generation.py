@@ -12,7 +12,6 @@ from dvmeta.timestamp import Timestamps
 from dvmeta.timestamp import get_display_time
 from dvmeta.timestamp import get_elapsed_time
 from dvmeta.timestamp import get_file_timestamp
-from dvmeta.utils import count_files_size
 from dvmeta.utils import count_key
 
 
@@ -41,8 +40,8 @@ def write_to_log(  # noqa:  PLR0913
         collections_tree_flatten=count_key(crawl_result.collections_tree_flatten),
         pid_dict_dd=count_key(crawl_result.pid_dict_dd),
         failed_metadata_ids=count_key(crawl_result.failed_metadata_uris),
-        file_num=count_files_size(crawl_result.meta_dict)[0],
-        file_size=count_files_size(crawl_result.meta_dict)[1],
+        # file_num=count_files_size(crawl_result.meta_dict)[0],
+        # file_size=count_files_size(crawl_result.meta_dict)[1],
         json_file_checksum_dict=crawl_result.export_data,
     )
 
