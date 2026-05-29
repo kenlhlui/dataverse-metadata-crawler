@@ -47,3 +47,4 @@ class Config(BaseModel):
     collection_id: int | str | None = None
     collection_name: str | None = None
     headers: dict[str, str] = Field(default_factory=dict)
+    metadata_source: str | None = None

@@ -17,7 +17,7 @@ class TyperOptions:
         envvar='API_KEY',
     )
     log: bool = typer.Option(True, '--log/--no-log', '-l', help='Output log file')
-    dvdfds_matadata: bool = typer.Option(
+    dvdfds_metadata: bool = typer.Option(
         False, '--dvdfds_metadata', '-d', help='Output JSON file of metadata of dataverse, dataset and datafiles'
     )
     permission: bool = typer.Option(
@@ -69,4 +69,10 @@ class TyperOptions:
         '--debug-log',
         '-debug',
         help='Enable debug logging. This will create a debug log file in the log_files directory.',
+    )
+    metadata_source: str = typer.Option(
+        None,
+        '--metadata-source',
+        '-m',
+        help='The source of the metadata to crawl. This option can be used to filter harvested datasets.',
     )

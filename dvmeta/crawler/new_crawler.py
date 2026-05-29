@@ -45,8 +45,8 @@ class MetaDataCrawler:
 
         return config
 
-    def get_all_dataverse_datasets(self, metadata_source: str | None = None) -> list:
-        """Get all datasets in the Dataverse collection (recursively, including all the children).
+    def get_dataverse_ds_records(self, metadata_source: str | None = None) -> list:
+        """Get the dataset records in the Dataverse collection (recursively, including all the children).
 
         Uses the Search API.
 
@@ -71,7 +71,7 @@ class MetaDataCrawler:
         if metadata_source:
             params['fq'] = f'metadata_source:{metadata_source}'
 
-        datasets = []
+        ds_records = []
 
         while True:
             logger.debug(f'Fetching datasets with start={params["start"]} from Search API...')
@@ -88,11 +88,11 @@ class MetaDataCrawler:
                 break
 
             for item in items:
-                datasets.append(item)
+                ds_records.append(item)
 
             params['start'] += params['per_page']
 
-        return datasets
+        return ds_records
 
     async def get_dataset_metadata(self, dataset_ids: list, draft: bool = False) -> dict:
         """Get the metadata of a dataset using the dataset Native API endpoint.

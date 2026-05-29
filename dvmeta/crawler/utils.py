@@ -6,19 +6,17 @@ from loguru import logger
 
 
 def parse_search_response(
-    search_response: list[dict], publication_status: Literal['Draft', 'Published', 'Unpublished'] | None = None
+    items: list[dict], publication_status: Literal['Draft', 'Published', 'Unpublished'] | None = None
 ) -> list:
     """Parse the search response to extract dataset metadata.
 
     Args:
-        search_response (list[dict]): The response from the search API.
+        items (list[dict]): The items field returned by the Search API response, which is a list of dataset metadata dictionaries.
         publication_status (Literal['Draft', 'Published', 'Unpublished'] | None): The publication status to filter by.
 
     Returns:
         list: A list of dataset metadata dictionaries.
-    """
-    items: list[dict] = search_response.get('data', {}).get('items', [])
-
+    """  # noqa: E501, W505
     if publication_status:
         items = [item for item in items if publication_status in item.get('publicationStatuses', [])]
 
