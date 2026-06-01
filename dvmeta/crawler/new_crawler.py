@@ -69,7 +69,7 @@ class MetaDataCrawler:
         }
 
         if metadata_source:
-            params['fq'] = f'metadata_source:{metadata_source}'
+            params['fq'] = f'metadataSource:{metadata_source}'
 
         ds_records = []
 
