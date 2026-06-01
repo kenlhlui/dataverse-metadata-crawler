@@ -14,6 +14,7 @@ from dvmeta.crawl_result import CrawlResult
 from dvmeta.crawler.new_crawler import MetaDataCrawler
 from dvmeta.crawler.utils import get_pids_from_search_response
 from dvmeta.crawler.utils import merge_oaiore_to_meta_dict
+from dvmeta.crawler.utils import merge_permission_to_meta_dict
 from dvmeta.crawler.utils import parse_search_response
 from dvmeta.custom_logging import CustomLogger
 from dvmeta.dirmanager import DirManager
@@ -46,6 +47,7 @@ class CLIState:
     publication_status: str | None = None
 
     exporter: ExportManager | None = None
+    skip_export: bool = False
 
     dataset_records: Any | None = None
     dataset_ids: list[str] | None = None
@@ -162,14 +164,15 @@ def crawl_metadata(ctx: typer.Context) -> None:
     # Merge OAI-ORE metadata into the meta_dict
     state.crawl_result.meta_dict = merge_oaiore_to_meta_dict(meta_dict, oaiore_metadata)
 
-    state.exporter.export(state.crawl_result.meta_dict, export_type='ds_metadata')
+    if not state.skip_export:
+        state.exporter.export(state.crawl_result.meta_dict, export_type='ds_metadata')
 
     if state.log:
         state.timestamps.end_time = get_current_time()
         write_to_log(state.config, state.timestamps, state.crawl_result)
 
     logger.info(
-        f'Metadata crawl for collection "{state.config.collection_alias}" completed. Crawled {len(state.crawl_result.meta_dict)} datasets.'
+        f'Dataset metadata crawl for collection "{state.config.collection_alias}" completed. Crawled {len(state.crawl_result.meta_dict)} datasets.'
     )
 
 
@@ -192,31 +195,42 @@ def crawl_permission(ctx: typer.Context) -> None:
 
     state.permission_records = asyncio.run(state.crawler.get_dataset_permissions(state.dataset_ids))
 
-    state.exporter.export(state.permission_records, export_type='permission')
+    if not state.skip_export:
+        state.exporter.export(state.permission_records, export_type='permission')
 
     logger.info(
         f'Permission metadata for collection "{state.config.collection_alias}" completed. Crawled {len(state.permission_records)} records.'
     )
 
 
-@app.command()
-def export_spreadsheet(ctx: typer.Context):
-    """Step 5: export to spreadsheet."""
-    state = get_state(ctx)
+# @app.command()
+# def export_spreadsheet(ctx: typer.Context):
+#     """Step 5: export to spreadsheet."""
+#     state = get_state(ctx)
 
-    if state.crawl_result is None:
-        raise typer.BadParameter('Run crawl first, or load crawl_result from persistence.')
+#     assert state.crawl_result is not None
+#     assert state.crawl_result.meta_dict is not None
+#     assert state.config is not None
 
-    # call your spreadsheet export function here
-    typer.echo('Spreadsheet export completed.')
+#     spreadsheet = Spreadsheet(state.config)
+#     spreadsheet.make_csv_file(state.crawl_result.meta_dict)
 
 
 @app.command()
 def run_all(ctx: typer.Context):
     """Run all steps in sequence."""
+    state = get_state(ctx)
+    state.skip_export = True
+
     search(ctx)
     crawl_metadata(ctx)
-    # crawl_permission(ctx)
+    crawl_permission(ctx)
+
+    assert state.crawl_result is not None
+    assert state.permission_records is not None
+    assert state.exporter is not None
+    state.crawl_result.meta_dict = merge_permission_to_meta_dict(state.crawl_result.meta_dict, state.permission_records)
+    state.exporter.export(state.crawl_result.meta_dict, export_type='ds_metadata')
     # export_spreadsheet(ctx)
 
 
