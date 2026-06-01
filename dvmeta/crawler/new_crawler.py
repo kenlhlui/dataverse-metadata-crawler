@@ -45,40 +45,47 @@ class MetaDataCrawler:
 
         return config
 
-    def get_dataverse_ds_records(self, metadata_source: str | None = None) -> list:
+    def get_dataverse_ds_records(
+        self, metadata_source: str | None = None, publication_status: str | None = None
+    ) -> list:
         """Get the dataset records in the Dataverse collection (recursively, including all the children).
 
         Uses the Search API.
 
         Args:
             metadata_source (str | None): Optional filter for metadata source (e.g., 'Borealis', 'Dataverse'). This is to exclude the harvested datasets. (docs: https://github.com/IQSS/dataverse/issues/9515). If no value is provided, it will fetch all datasets regardless of the metadata source.
+            publication_status (str | None): Optional filter for publication status (e.g., 'Published', 'Draft', 'Unpublished', 'Deaccessioned'). If no value is provided, it will fetch all datasets regardless of the publication status. See the 'facets' section in the Search API return for the possible values.
 
         Returns:
             list: A list of dataset metadata dictionaries
         """  # noqa: W505, E501
         search_url = self.endpoints.search()
-        params = {
-            'q': '*',
-            'per_page': 1000,  # Adjust as needed # TODO: make this adjustable via config or CLI option
-            'type': 'dataset',
-            'start': 0,  # Pagination start index
-            'subtree': self.config.collection_alias,  # Search within the specified collection # TODO: make this more flexible to allow multiple collections (e.g. &subtree=birds&subtree=cats)  # noqa: E501
-            'show_collections': True,
-            'query_entities': False,  # Make the query faster by not fetching the entities
-            'show_entity_ids': True,
-        }
-
-        if metadata_source:
-            params['fq'] = f'metadataSource:{metadata_source}'
+        per_page = 1000
+        start = 0
 
         ds_records = []
 
         while True:
-            logger.debug(f'Fetching datasets with start={params["start"]} from Search API...')
+            params = [
+                ('q', '*'),
+                ('per_page', per_page),
+                ('type', 'dataset'),
+                ('start', start),
+                ('subtree', self.config.collection_alias),
+                ('show_collections', True),
+                ('query_entities', False),
+                ('show_entity_ids', True),
+            ]
+
+            if metadata_source:
+                params.append(('fq', f'metadataSource:"{metadata_source}"'))
+
+            if publication_status:
+                params.append(('fq', f'publicationStatus:"{publication_status}"'))
+
+            logger.debug(f'Fetching datasets with params {params} from Search API...')
             response = self.client.sync_get(search_url, params=params)
-            logger.debug(
-                f'Search API response for start={params["start"]}: {response.text if response else "No response"}'
-            )
+
             if response is None:
                 break
 
@@ -87,10 +94,8 @@ class MetaDataCrawler:
             if not items:
                 break
 
-            for item in items:
-                ds_records.append(item)
-
-            params['start'] += params['per_page']
+            ds_records.extend(items)
+            start += per_page
 
         return ds_records
 

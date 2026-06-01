@@ -76,3 +76,9 @@ class TyperOptions:
         '-m',
         help='The source of the metadata to crawl. This option can be used to filter harvested datasets.',
     )
+    publication_status: str = typer.Option(
+        None,
+        '--publication-status',
+        '-ps',
+        help='The publication status of the datasets to crawl. Common values are "Published", "Draft", "Unpublished", "Deaccessioned". Depends on the installation',  # noqa: E501
+    )

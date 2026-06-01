@@ -123,7 +123,7 @@ class HttpxClient:
         except (httpx.HTTPStatusError, httpx.RequestError):
             return False
 
-    def sync_get(self, url: str, params: dict | None = None) -> httpx.Response | None:
+    def sync_get(self, url: str, params: list | dict | None = None) -> httpx.Response | None:
         """Synchronous GET request.
 
         Args:
