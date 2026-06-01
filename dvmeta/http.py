@@ -24,9 +24,7 @@ class HttpxClient:
             async_sleep_time (int): Sleep time for asynchronous requests
         """  # noqa: W505
         self.config = config
-        self.semaphore = asyncio.Semaphore(10)  # 10 concurrent requests # TODO: make this configurable
         self.sync_client = httpx.Client(timeout=None, headers=dict(config.headers))
-        self.async_client = httpx.AsyncClient(timeout=None, headers=dict(config.headers))
         self.async_sleep_time = 0  # TODO: make this configurable
         self.httpx_success_status = 200
 
@@ -49,8 +47,6 @@ class HttpxClient:
             exc_tb: Exception traceback if an exception was raised
         """
         self.sync_client.close()
-        if not self.async_client.is_closed:
-            asyncio.run(self.async_client.aclose())
 
     async def __aenter__(self) -> 'HttpxClient':
         """Enter asynchronous context manager."""
@@ -60,21 +56,24 @@ class HttpxClient:
         self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: TracebackType | None
     ) -> None:
         """Exit asynchronous context manager and cleanup resources."""
-        await self.async_client.aclose()
         self.sync_client.close()
 
-    async def _async_semaphore_client(self, url: str) -> httpx.Response | list[str]:
+    async def _async_semaphore_client(
+        self, url: str, semaphore: asyncio.Semaphore, client: httpx.AsyncClient
+    ) -> httpx.Response | list[str]:
         """Asynchronous HTTP client with semaphore.
 
         Args:
             url (str): URL to GET
+            semaphore (asyncio.Semaphore): Semaphore bound to the current event loop
+            client (httpx.AsyncClient): Async client bound to the current event loop
 
         Returns:
             httpx.Response: Response object
         """
-        async with self.semaphore:
+        async with semaphore:
             try:
-                response = await self.async_client.get(url)
+                response = await client.get(url)
                 if response.status_code != self.httpx_success_status:
                     # print(f'HTTP request Error for {url}: {response.status_code}')
                     return response
@@ -154,7 +153,7 @@ class HttpxClient:
         Returns:
             list: List of httpx.Response objects
         """
-        tasks = [self._async_semaphore_client(url) for url in url_list]
-
-        # Using asyncio.gather to collect results
-        return await asyncio.gather(*tasks)
+        semaphore = asyncio.Semaphore(10)  # TODO: make this configurable
+        async with httpx.AsyncClient(timeout=None, headers=dict(self.config.headers)) as client:
+            tasks = [self._async_semaphore_client(url, semaphore, client) for url in url_list]
+            return await asyncio.gather(*tasks)
