@@ -12,6 +12,8 @@ from dvmeta.cli.validation import validate_connection
 from dvmeta.cli.validation import validate_spreadsheet_option
 from dvmeta.crawl_result import CrawlResult
 from dvmeta.crawler.new_crawler import MetaDataCrawler
+from dvmeta.crawler.utils import get_pids_from_search_response
+from dvmeta.crawler.utils import merge_oaiore_to_meta_dict
 from dvmeta.crawler.utils import parse_search_response
 from dvmeta.custom_logging import CustomLogger
 from dvmeta.dirmanager import DirManager
@@ -145,9 +147,20 @@ def crawl_metadata(ctx: typer.Context) -> None:
     if state.crawl_result is None:
         state.crawl_result = CrawlResult()
 
-    state.crawl_result.meta_dict = asyncio.run(state.crawler.get_dataset_metadata(state.dataset_ids))
+    crawler = state.crawler
+    dataset_ids = state.dataset_ids
+    pids = list(get_pids_from_search_response(state.dataset_records).values())
 
-    # TODO: Add the ORIORE crawling and path extraction here, and include it in the crawl_result
+    async def _fetch_all() -> tuple[dict, dict]:
+        return await asyncio.gather(
+            crawler.get_dataset_metadata(dataset_ids),
+            crawler.get_oaiore_metadata(pids),
+        )
+
+    meta_dict, oaiore_metadata = asyncio.run(_fetch_all())
+
+    # Merge OAI-ORE metadata into the meta_dict
+    state.crawl_result.meta_dict = merge_oaiore_to_meta_dict(meta_dict, oaiore_metadata)
 
     state.exporter.export(state.crawl_result.meta_dict, export_type='ds_metadata')
 
@@ -179,8 +192,10 @@ def crawl_permission(ctx: typer.Context) -> None:
 
     state.permission_records = asyncio.run(state.crawler.get_dataset_permissions(state.dataset_ids))
 
+    state.exporter.export(state.permission_records, export_type='permission')
+
     logger.info(
-        f'Permission crawl for collection {state.config.collection_alias} completed. Crawled {len(state.permission_records)} datasets.'
+        f'Permission metadata for collection "{state.config.collection_alias}" completed. Crawled {len(state.permission_records)} records.'
     )
 
 
@@ -197,29 +212,12 @@ def export_spreadsheet(ctx: typer.Context):
 
 
 @app.command()
-def write_log(ctx: typer.Context):
-    """Step 6: write log."""
-    state = get_state(ctx)
-
-    if state.timestamps is None:
-        raise typer.BadParameter('Missing timestamps.')
-
-    if state.crawl_result is None:
-        raise typer.BadParameter('Run crawl first, or load crawl_result from persistence.')
-
-    state.timestamps.end_time = get_current_time()
-    write_to_log(state.config, state.timestamps, state.crawl_result)
-    typer.echo('Log written.')
-
-
-@app.command()
 def run_all(ctx: typer.Context):
     """Run all steps in sequence."""
     search(ctx)
     crawl_metadata(ctx)
     # crawl_permission(ctx)
     # export_spreadsheet(ctx)
-    write_log(ctx)
 
 
 if __name__ == '__main__':

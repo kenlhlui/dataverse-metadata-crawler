@@ -27,6 +27,44 @@ def parse_search_response(
     return list(dict.fromkeys([item.get('entity_id') for item in items]))  # remove duplicates while preserving order
 
 
+def get_pids_from_search_response(items: list[dict]) -> dict:
+    """Parse the search response to extract dataset PIDs.
+
+    Args:
+        items (list[dict]): The items field returned by the Search API response, which is a list of dataset metadata dictionaries.
+
+    Returns:
+        dict: A dictionary mapping dataset (entity) IDs to their PIDs.
+    """
+    return {item.get('entity_id'): item.get('global_id') for item in items if item.get('global_id') is not None}
+
+
+def merge_oaiore_to_meta_dict(meta_dict: dict, oaiore_metadata: dict) -> dict:
+    """Merge OAI-ORE metadata into the meta_dict.
+
+    Args:
+        meta_dict (dict): The original metadata dictionary containing dataset metadata.
+        oaiore_metadata (dict): The OAI-ORE metadata dictionary to merge, which contains dataset paths.
+
+    Returns:
+        dict: The merged metadata dictionary with OAI-ORE metadata included.
+    """
+    for dataset_id, dataset_meta in meta_dict.items():
+        dataset_pid = dataset_meta.get('data', {}).get('latestVersion', {}).get('datasetPersistentId')
+        oaiore_meta = oaiore_metadata.get(dataset_pid)
+        logger.debug(f'OAI-ORE metadata for dataset ID {dataset_id} (PID {dataset_pid}): {oaiore_meta}')
+        if oaiore_meta:
+            path = get_path_from_oaiore(oaiore_meta)
+            if path:
+                dataset_meta['dataset_path'] = path
+            else:
+                logger.debug(f'No valid path found in OAI-ORE metadata for dataset ID {dataset_id}.')
+        else:
+            logger.debug(f'No OAI-ORE metadata found for dataset ID {dataset_id}.')
+
+    return meta_dict
+
+
 def extract_path(node: dict, dataset_name: str) -> str:
     """Walk schema:isPartOf chain from leaf to root, return ordered path."""
     path = []
@@ -62,3 +100,24 @@ def get_path_from_oaiore(oaiore_response: dict) -> str | None:
         return None
 
     return extract_path(ispartof, dataset_name)
+
+
+def merge_permission_to_meta_dict(meta_dict: dict, permission_metadata: dict) -> dict:
+    """Merge permission metadata into the meta_dict.
+
+    Args:
+        meta_dict (dict): The original metadata dictionary containing dataset metadata.
+        permission_metadata (dict): The permission metadata dictionary to merge, which contains dataset permissions.
+
+    Returns:
+        dict: The merged metadata dictionary with permission metadata included.
+    """
+    for dataset_id, dataset_meta in meta_dict.items():
+        permissions = permission_metadata.get(dataset_id)
+        logger.debug(f'Permission metadata for dataset ID {dataset_id}: {permissions}')
+        if permissions is not None:
+            dataset_meta['permissions'] = permissions
+        else:
+            logger.debug(f'No permission metadata found for dataset ID {dataset_id}.')
+
+    return meta_dict
