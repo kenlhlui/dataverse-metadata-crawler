@@ -23,7 +23,8 @@ def parse_search_response(
     if not items:
         logger.warning('No items found in the search response.')
         return []
-    return [item.get('entity_id') for item in items]
+
+    return list(dict.fromkeys([item.get('entity_id') for item in items]))  # remove duplicates while preserving order
 
 
 def extract_path(node: dict, dataset_name: str) -> str:
