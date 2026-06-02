@@ -37,9 +37,7 @@ class CLIState:
     collection_data: Any | None = None
     crawl_result: CrawlResult | None = None
     log: bool = True
-    dvdfds_metadata: bool = False
     permission: bool = False
-    empty_dv: bool = False
     failed: bool = False
     spreadsheet: bool = False
     metadata_source: str | None = None
@@ -59,11 +57,9 @@ def main(
     ctx: typer.Context,
     auth: str = TyperOptions.auth,
     log: bool = TyperOptions.log,
-    # dvdfds_metadata: bool = TyperOptions.dvdfds_metadata,
     permission: bool = TyperOptions.permission,
     collection_alias: str = TyperOptions.collection_alias,
     version: str = TyperOptions.version,
-    empty_dv: bool = TyperOptions.empty_dv,
     failed: bool = TyperOptions.failed,
     spreadsheet: bool = TyperOptions.spreadsheet,
     debug_log: bool = TyperOptions.debug_log,
@@ -92,7 +88,6 @@ def main(
     state.config = config
     state.log = log
     state.permission = permission
-    state.empty_dv = empty_dv
     state.failed = failed
     state.spreadsheet = spreadsheet
     state.metadata_source = config.metadata_source

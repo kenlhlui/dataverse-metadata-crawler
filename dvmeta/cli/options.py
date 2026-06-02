@@ -46,12 +46,6 @@ class TyperOptions:
         prompt_required=True,
         callback=validate_version_type,
     )
-    empty_dv: bool = typer.Option(
-        False,
-        '--emptydv',
-        '-e',
-        help='Output JSON file that stores all dataverses that does have contain datasets (but might include child dataverses and their child dataverses might have datasets)',
-    )
     failed: bool = typer.Option(
         False, '--failed', '-f', help='Output JSON file that stores dataverses/datasets failed to be crawled'
     )
