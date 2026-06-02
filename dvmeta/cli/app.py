@@ -127,17 +127,8 @@ def crawl_metadata(ctx: typer.Context) -> None:
     """Step 3: crawl metadata."""
     state = get_state(ctx)
 
-    if state.crawler is None:
-        state.crawler = MetaDataCrawler(state.config)
-
-    if state.dataset_records is None:
-        # Run the search step if dataset_records is not already populated
-        state.dataset_records = state.crawler.get_dataverse_ds_records(
-            metadata_source=state.metadata_source, publication_status=state.publication_status
-        )
-
     if state.dataset_ids is None:
-        state.dataset_ids = parse_search_response(state.dataset_records)
+        search(ctx)
 
     if state.crawl_result is None:
         state.crawl_result = CrawlResult()
@@ -174,17 +165,8 @@ def crawl_permission(ctx: typer.Context) -> None:
     """Step 4: crawl permissions."""
     state = get_state(ctx)
 
-    if state.crawler is None:
-        state.crawler = MetaDataCrawler(state.config)
-
-    if state.dataset_records is None:
-        # Run the search step if dataset_records is not already populated
-        state.dataset_records = state.crawler.get_dataverse_ds_records(
-            metadata_source=state.metadata_source, publication_status=state.publication_status
-        )
-
     if state.dataset_ids is None:
-        state.dataset_ids = parse_search_response(state.dataset_records)
+        search(ctx)
 
     state.permission_records = asyncio.run(state.crawler.get_dataset_permissions(state.dataset_ids))
 
