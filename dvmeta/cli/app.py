@@ -6,6 +6,7 @@ import typer
 from loguru import logger
 
 from dvmeta.cli.options import TyperOptions
+from dvmeta.cli.utils import spinner
 from dvmeta.cli.validation import validate_api_token_presence
 from dvmeta.cli.validation import validate_connection
 from dvmeta.crawler.crawler import MetaDataCrawler
@@ -109,17 +110,18 @@ def search(ctx: typer.Context) -> None:
     """Step 2: search for datasets in the collection."""
     state = get_state(ctx)
 
-    state.crawler = MetaDataCrawler(state.config)
+    with spinner():
+        state.crawler = MetaDataCrawler(state.config)
 
-    state.dataset_records = state.crawler.get_dataverse_ds_records(
-        metadata_source=state.metadata_source, publication_status=state.publication_status
-    )
+        state.dataset_records = state.crawler.get_dataverse_ds_records(
+            metadata_source=state.metadata_source, publication_status=state.publication_status
+        )
 
-    state.dataset_ids = parse_search_response(state.dataset_records)
+        state.dataset_ids = parse_search_response(state.dataset_records)
 
-    logger.info(
-        f'Search for datasets in collection "{state.config.collection_alias}" completed. Found {len(state.dataset_ids)} datasets.'  # noqa: E501
-    )
+        logger.info(
+            f'Search for datasets in collection "{state.config.collection_alias}" completed. Found {len(state.dataset_ids)} datasets.'  # noqa: E501
+        )
 
 
 @app.command()
@@ -130,34 +132,35 @@ def crawl_metadata(ctx: typer.Context) -> None:
     if state.dataset_ids is None:
         search(ctx)
 
-    if state.crawl_result is None:
-        state.crawl_result = CrawlResult()
+    with spinner():
+        if state.crawl_result is None:
+            state.crawl_result = CrawlResult()
 
-    crawler = state.crawler
-    dataset_ids = state.dataset_ids
-    pids = list(get_pids_from_search_response(state.dataset_records).values())
+        crawler = state.crawler
+        dataset_ids = state.dataset_ids
+        pids = list(get_pids_from_search_response(state.dataset_records).values())
 
-    async def _fetch_all() -> tuple[dict, dict]:
-        return await asyncio.gather(
-            crawler.get_dataset_metadata(dataset_ids),
-            crawler.get_oaiore_metadata(pids),
+        async def _fetch_all() -> tuple[dict, dict]:
+            return await asyncio.gather(
+                crawler.get_dataset_metadata(dataset_ids),
+                crawler.get_oaiore_metadata(pids),
+            )
+
+        meta_dict, oaiore_metadata = asyncio.run(_fetch_all())
+
+        # Merge OAI-ORE metadata into the meta_dict
+        state.crawl_result.meta_dict = merge_oaiore_to_meta_dict(meta_dict, oaiore_metadata)
+
+        if not state.skip_export:
+            state.exporter.export(state.crawl_result.meta_dict, export_type='ds_metadata')
+
+        if state.log:
+            state.timestamps.end_time = get_current_time()
+            write_to_log(state.config, state.timestamps, state.crawl_result)
+
+        logger.info(
+            f'Dataset metadata crawl for collection "{state.config.collection_alias}" completed. Crawled {len(state.crawl_result.meta_dict)} datasets.'
         )
-
-    meta_dict, oaiore_metadata = asyncio.run(_fetch_all())
-
-    # Merge OAI-ORE metadata into the meta_dict
-    state.crawl_result.meta_dict = merge_oaiore_to_meta_dict(meta_dict, oaiore_metadata)
-
-    if not state.skip_export:
-        state.exporter.export(state.crawl_result.meta_dict, export_type='ds_metadata')
-
-    if state.log:
-        state.timestamps.end_time = get_current_time()
-        write_to_log(state.config, state.timestamps, state.crawl_result)
-
-    logger.info(
-        f'Dataset metadata crawl for collection "{state.config.collection_alias}" completed. Crawled {len(state.crawl_result.meta_dict)} datasets.'
-    )
 
 
 @app.command()
@@ -168,14 +171,15 @@ def crawl_permission(ctx: typer.Context) -> None:
     if state.dataset_ids is None:
         search(ctx)
 
-    state.permission_records = asyncio.run(state.crawler.get_dataset_permissions(state.dataset_ids))
+    with spinner():
+        state.permission_records = asyncio.run(state.crawler.get_dataset_permissions(state.dataset_ids))
 
-    if not state.skip_export:
-        state.exporter.export(state.permission_records, export_type='permission')
+        if not state.skip_export:
+            state.exporter.export(state.permission_records, export_type='permission')
 
-    logger.info(
-        f'Permission metadata for collection "{state.config.collection_alias}" completed. Crawled {len(state.permission_records)} records.'
-    )
+        logger.info(
+            f'Permission metadata for collection "{state.config.collection_alias}" completed. Crawled {len(state.permission_records)} records.'
+        )
 
 
 @app.command()
@@ -183,12 +187,13 @@ def export_spreadsheet(ctx: typer.Context):
     """Step 5: export to spreadsheet."""
     state = get_state(ctx)
 
-    assert state.crawl_result is not None
-    assert state.crawl_result.meta_dict is not None
-    assert state.config is not None
+    with spinner():
+        assert state.crawl_result is not None
+        assert state.crawl_result.meta_dict is not None
+        assert state.config is not None
 
-    spreadsheet = Spreadsheet(state.config)
-    spreadsheet.make_csv_file(state.crawl_result.meta_dict)
+        spreadsheet = Spreadsheet(state.config)
+        spreadsheet.make_csv_file(state.crawl_result.meta_dict)
 
 
 @app.command()
@@ -204,7 +209,9 @@ def run_all(ctx: typer.Context):
     assert state.crawl_result is not None
     assert state.permission_records is not None
     assert state.exporter is not None
-    state.crawl_result.meta_dict = merge_permission_to_meta_dict(state.crawl_result.meta_dict, state.permission_records)
+    state.crawl_result.meta_dict = merge_permission_to_meta_dict(
+        state.crawl_result.meta_dict, state.permission_records
+    )
     state.exporter.export(state.crawl_result.meta_dict, export_type='ds_metadata')
     export_spreadsheet(ctx)
 
