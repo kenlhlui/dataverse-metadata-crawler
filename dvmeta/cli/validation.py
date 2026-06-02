@@ -6,8 +6,8 @@ from pydantic import ValidationError
 from typer import BadParameter
 
 from dvmeta.http import HttpxClient
-from dvmeta.models import Config
-from dvmeta.models import DatasetVersion
+from dvmeta.models.config import Config
+from dvmeta.models.models import DatasetVersion
 
 
 def validate_spreadsheet_option(value: bool, dvdfds_metadata: bool) -> bool:

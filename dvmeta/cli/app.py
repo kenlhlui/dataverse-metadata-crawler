@@ -10,7 +10,6 @@ from dvmeta.cli.validation import validate_api_token_presence
 from dvmeta.cli.validation import validate_basic_input
 from dvmeta.cli.validation import validate_connection
 from dvmeta.cli.validation import validate_spreadsheet_option
-from dvmeta.crawl_result import CrawlResult
 from dvmeta.crawler.crawler import MetaDataCrawler
 from dvmeta.crawler.utils import get_pids_from_search_response
 from dvmeta.crawler.utils import merge_oaiore_to_meta_dict
@@ -20,7 +19,8 @@ from dvmeta.custom_logging import CustomLogger
 from dvmeta.dirmanager import DirManager
 from dvmeta.exporter import ExportManager
 from dvmeta.log_generation import write_to_log
-from dvmeta.models import Config
+from dvmeta.models.config import Config
+from dvmeta.models.crawl_result import CrawlResult
 from dvmeta.spreadsheet import Spreadsheet
 from dvmeta.timestamp import Timestamps
 from dvmeta.timestamp import get_current_time

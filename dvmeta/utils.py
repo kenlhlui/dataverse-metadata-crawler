@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 from loguru import logger
 
 from dvmeta.dirmanager import DirManager
-from dvmeta.models import Config
+from dvmeta.models.config import Config
 from dvmeta.timestamp import get_file_timestamp
 
 

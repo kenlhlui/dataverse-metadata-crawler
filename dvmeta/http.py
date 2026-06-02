@@ -6,7 +6,7 @@ from urllib.parse import urljoin
 import httpx
 from loguru import logger
 
-from dvmeta.models import Config
+from dvmeta.models.config import Config
 
 
 class HttpxClient:

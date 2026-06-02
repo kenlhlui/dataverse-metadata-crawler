@@ -5,9 +5,9 @@ from pathlib import Path
 from jinja2 import Template
 from loguru import logger
 
-from dvmeta.crawl_result import CrawlResult
 from dvmeta.dirmanager import DirManager
-from dvmeta.models import Config
+from dvmeta.models.config import Config
+from dvmeta.models.crawl_result import CrawlResult
 from dvmeta.timestamp import Timestamps
 from dvmeta.timestamp import get_display_time
 from dvmeta.timestamp import get_elapsed_time

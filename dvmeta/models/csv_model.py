@@ -1,3 +1,5 @@
+"""The column structure of the dataset metadata CSV export."""
+
 from typing import TypedDict
 
 

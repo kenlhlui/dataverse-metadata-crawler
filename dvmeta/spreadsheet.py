@@ -8,11 +8,11 @@ import jmespath
 import pandas as pd
 from loguru import logger
 
-from dvmeta.csv_model import DatasetExportRow
 from dvmeta.dirmanager import DirManager
-from dvmeta.models import CitationAccessor
-from dvmeta.models import Config
-from dvmeta.models import DatasetData
+from dvmeta.models.config import Config
+from dvmeta.models.csv_model import DatasetExportRow
+from dvmeta.models.models import CitationAccessor
+from dvmeta.models.models import DatasetData
 from dvmeta.timestamp import get_file_timestamp
 from dvmeta.utils import convert_size
 from dvmeta.utils import gen_checksum

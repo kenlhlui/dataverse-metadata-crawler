@@ -3,19 +3,10 @@
 from typing import Literal
 
 from pydantic import BaseModel
-from pydantic import ConfigDict
 from pydantic import Field
 
 
 # ruff: noqa: N815
-
-
-class CollectionData(BaseModel):
-    """Model for collection data."""
-
-    id: str | int  # Accept both string and integer for id
-    alias: str
-    name: str
 
 
 class DvResponse(BaseModel):
@@ -25,34 +16,10 @@ class DvResponse(BaseModel):
     data: dict
 
 
-class CollectionsTreeResponseData(BaseModel):
-    """Model for the collections tree response data."""
-
-    status: str
-    data: CollectionData | None = Field(default=None, description='The collections tree data')
-
-
 class DatasetVersion(BaseModel):
     """Permitted dataset version type."""
 
     version: Literal['draft', 'latest', 'latest-published'] | float | int
-
-
-class Config(BaseModel):
-    """Model for the configuration settings."""
-
-    model_config = ConfigDict(frozen=False)
-
-    api_key: str | None = None
-    base_url: str
-    version: str = ''
-    collection_alias: str = ''
-    collection_id: int | str | None = None
-    collection_name: str | None = None
-    metadata_source: str | None = None
-    semaphore: int = (
-        5  # Default number of concurrent requests for async operations, can be overridden by method parameters
-    )
 
 
 class DatasetField(BaseModel):
