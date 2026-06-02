@@ -51,6 +51,9 @@ class Config(BaseModel):
     collection_name: str | None = None
     headers: dict[str, str] = Field(default_factory=dict)
     metadata_source: str | None = None
+    semaphore: int = (
+        5  # Default number of concurrent requests for async operations, can be overridden by method parameters
+    )
 
 
 class DatasetField(BaseModel):

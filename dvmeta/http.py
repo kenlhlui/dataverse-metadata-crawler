@@ -27,6 +27,7 @@ class HttpxClient:
         self.sync_client = httpx.Client(timeout=None, headers=dict(config.headers))
         self.async_sleep_time = 0  # TODO: make this configurable
         self.httpx_success_status = 200
+        self.semaphore_num = config.semaphore
 
     def __enter__(self) -> 'HttpxClient':
         """Enter context manager.
@@ -144,16 +145,20 @@ class HttpxClient:
                 request=httpx.Request('GET', url),
             )
 
-    async def async_get(self, url_list: list) -> list:
+    async def async_get(
+        self,
+        url_list: list,
+    ) -> list:
         """Asynchronous GET request.
 
         Args:
             url_list (list): List of URLs to GET
+            semaphore_num (int): Number of concurrent requests allowed
 
         Returns:
             list: List of httpx.Response objects
         """
-        semaphore = asyncio.Semaphore(10)  # TODO: make this configurable
+        semaphore = asyncio.Semaphore(self.semaphore_num)  # TODO: make this configurable
         async with httpx.AsyncClient(timeout=None, headers=dict(self.config.headers)) as client:
             tasks = [self._async_semaphore_client(url, semaphore, client) for url in url_list]
             return await asyncio.gather(*tasks)
