@@ -1,7 +1,6 @@
 """HTTP client class for making GET requests."""
 
 import asyncio
-from types import TracebackType
 from urllib.parse import urljoin
 
 import httpx
@@ -14,15 +13,6 @@ class HttpxClient:
     """HTTP client class for making GET requests."""
 
     def __init__(self, config: Config) -> None:
-        """Initialize HTTP client.
-
-        Args:
-            config (Config): Configuration settings
-            semaphore (asyncio.Semaphore): Semaphore object for limiting concurrent requests
-            sync_client (httpx.Client): Synchronous HTTP client
-            async_client (httpx.AsyncClient): Asynchronous HTTP client
-            async_sleep_time (int): Sleep time for asynchronous requests
-        """  # noqa: W505
         self.config = config
         self.httpx_success_status = 200
         self.semaphore_num = config.semaphore
@@ -32,38 +22,6 @@ class HttpxClient:
             if not config.api_key
             else {'Accept': 'application/json', 'X-Dataverse-key': config.api_key}
         )
-
-        self.sync_client = httpx.Client(timeout=None, headers=self.header)
-
-    def __enter__(self) -> 'HttpxClient':
-        """Enter context manager.
-
-        Returns:
-            HttpxClient: Self reference
-        """
-        return self
-
-    def __exit__(
-        self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: TracebackType | None
-    ) -> None:
-        """Exit context manager and cleanup resources.
-
-        Args:
-            exc_type: Exception type if an exception was raised
-            exc_val: Exception value if an exception was raised
-            exc_tb: Exception traceback if an exception was raised
-        """
-        self.sync_client.close()
-
-    async def __aenter__(self) -> 'HttpxClient':
-        """Enter asynchronous context manager."""
-        return self
-
-    async def __aexit__(
-        self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: TracebackType | None
-    ) -> None:
-        """Exit asynchronous context manager and cleanup resources."""
-        self.sync_client.close()
 
     async def _async_semaphore_client(
         self, url: str, semaphore: asyncio.Semaphore, client: httpx.AsyncClient
@@ -106,7 +64,7 @@ class HttpxClient:
         auth_url = urljoin(base_url, api_endpoint)
 
         try:
-            with self.sync_client as client:
+            with httpx.Client(timeout=None, headers=self.header) as client:
                 response = client.get(auth_url, headers=auth_headers)
                 logger.debug(f'API key authentication response: {response.text}')
                 return response.status_code == self.httpx_success_status
@@ -123,7 +81,7 @@ class HttpxClient:
         public_url: str = urljoin(base_url, '/api/info/version')
 
         try:
-            with self.sync_client as client:
+            with httpx.Client(timeout=None, headers=self.header) as client:
                 response = client.get(public_url)
                 return response.status_code == self.httpx_success_status
         except (httpx.HTTPStatusError, httpx.RequestError):
