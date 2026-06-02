@@ -21,6 +21,7 @@ from dvmeta.dirmanager import DirManager
 from dvmeta.exporter import ExportManager
 from dvmeta.log_generation import write_to_log
 from dvmeta.models import Config
+from dvmeta.new_spreadsheet import Spreadsheet
 from dvmeta.timestamp import Timestamps
 from dvmeta.timestamp import get_current_time
 from dvmeta.utils import load_env
@@ -203,17 +204,17 @@ def crawl_permission(ctx: typer.Context) -> None:
     )
 
 
-# @app.command()
-# def export_spreadsheet(ctx: typer.Context):
-#     """Step 5: export to spreadsheet."""
-#     state = get_state(ctx)
+@app.command()
+def export_spreadsheet(ctx: typer.Context):
+    """Step 5: export to spreadsheet."""
+    state = get_state(ctx)
 
-#     assert state.crawl_result is not None
-#     assert state.crawl_result.meta_dict is not None
-#     assert state.config is not None
+    assert state.crawl_result is not None
+    assert state.crawl_result.meta_dict is not None
+    assert state.config is not None
 
-#     spreadsheet = Spreadsheet(state.config)
-#     spreadsheet.make_csv_file(state.crawl_result.meta_dict)
+    spreadsheet = Spreadsheet(state.config)
+    spreadsheet.make_csv_file(state.crawl_result.meta_dict)
 
 
 @app.command()
@@ -231,7 +232,7 @@ def run_all(ctx: typer.Context):
     assert state.exporter is not None
     state.crawl_result.meta_dict = merge_permission_to_meta_dict(state.crawl_result.meta_dict, state.permission_records)
     state.exporter.export(state.crawl_result.meta_dict, export_type='ds_metadata')
-    # export_spreadsheet(ctx)
+    export_spreadsheet(ctx)
 
 
 if __name__ == '__main__':

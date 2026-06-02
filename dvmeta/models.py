@@ -117,7 +117,7 @@ class LatestVersion(BaseModel):
     releaseTime: str | None = None
     createTime: str | None = None
 
-    metadataBlocks: MetadataBlocks
+    metadataBlocks: MetadataBlocks = Field(default_factory=MetadataBlocks)
 
 
 class DatasetData(BaseModel):
