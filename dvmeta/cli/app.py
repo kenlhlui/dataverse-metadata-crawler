@@ -7,9 +7,7 @@ from loguru import logger
 
 from dvmeta.cli.options import TyperOptions
 from dvmeta.cli.validation import validate_api_token_presence
-from dvmeta.cli.validation import validate_basic_input
 from dvmeta.cli.validation import validate_connection
-from dvmeta.cli.validation import validate_spreadsheet_option
 from dvmeta.crawler.crawler import MetaDataCrawler
 from dvmeta.crawler.utils import get_pids_from_search_response
 from dvmeta.crawler.utils import merge_oaiore_to_meta_dict
@@ -61,7 +59,7 @@ def main(
     ctx: typer.Context,
     auth: str = TyperOptions.auth,
     log: bool = TyperOptions.log,
-    dvdfds_metadata: bool = TyperOptions.dvdfds_metadata,
+    # dvdfds_metadata: bool = TyperOptions.dvdfds_metadata,
     permission: bool = TyperOptions.permission,
     collection_alias: str = TyperOptions.collection_alias,
     version: str = TyperOptions.version,
@@ -71,6 +69,7 @@ def main(
     debug_log: bool = TyperOptions.debug_log,
     metadata_source: str = TyperOptions.metadata_source,
     publication_status: str = TyperOptions.publication_status,
+    semaphore_limit: int = TyperOptions.semaphore_limit,
 ):
     """Step 1: load config and validate inputs. Runs before every subcommand."""
     CustomLogger.setup_logging(DirManager().log_files_dir() if debug_log else None)
@@ -83,9 +82,8 @@ def main(
     config.version = version
     config.api_key = auth if auth else config.api_key
     config.metadata_source = metadata_source
+    config.semaphore_limit = semaphore_limit
 
-    validate_spreadsheet_option(spreadsheet, dvdfds_metadata)
-    validate_basic_input(dvdfds_metadata, permission)
     validate_api_token_presence(permission, config)
 
     auth_status = validate_connection(config)
@@ -93,7 +91,6 @@ def main(
 
     state.config = config
     state.log = log
-    state.dvdfds_metadata = dvdfds_metadata
     state.permission = permission
     state.empty_dv = empty_dv
     state.failed = failed

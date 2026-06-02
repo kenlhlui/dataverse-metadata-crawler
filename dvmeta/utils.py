@@ -112,5 +112,6 @@ def load_env() -> Config:
     load_dotenv()
     api_key = os.getenv('API_KEY') or None
     base_url = os.getenv('BASE_URL', '')
+    semaphore_limit = int(os.getenv('SEMAPHORE_LIMIT', 5))
 
-    return Config(api_key=api_key, base_url=base_url)
+    return Config(api_key=api_key, base_url=base_url, semaphore_limit=semaphore_limit)

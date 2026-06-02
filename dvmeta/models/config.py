@@ -16,6 +16,6 @@ class Config(BaseModel):
     collection_id: int | str | None = None
     collection_name: str | None = None
     metadata_source: str | None = None
-    semaphore: int = (
+    semaphore_limit: int = (
         5  # Default number of concurrent requests for async operations, can be overridden by method parameters
     )

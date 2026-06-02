@@ -15,7 +15,7 @@ class HttpxClient:
     def __init__(self, config: Config) -> None:
         self.config = config
         self.httpx_success_status = 200
-        self.semaphore_num = config.semaphore
+        self.semaphore_num = config.semaphore_limit
 
         self.header = (
             {'Accept': 'application/json'}
