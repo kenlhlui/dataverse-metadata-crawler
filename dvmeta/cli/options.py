@@ -17,9 +17,6 @@ class TyperOptions:
         envvar='API_KEY',
     )
     log: bool = typer.Option(True, '--log/--no-log', '-l', help='Output log file')
-    dvdfds_matadata: bool = typer.Option(
-        False, '--dvdfds_metadata', '-d', help='Output JSON file of metadata of dataverse, dataset and datafiles'
-    )
     permission: bool = typer.Option(
         False,
         '--permission',
@@ -49,12 +46,6 @@ class TyperOptions:
         prompt_required=True,
         callback=validate_version_type,
     )
-    empty_dv: bool = typer.Option(
-        False,
-        '--emptydv',
-        '-e',
-        help='Output JSON file that stores all dataverses that does have contain datasets (but might include child dataverses and their child dataverses might have datasets)',
-    )
     failed: bool = typer.Option(
         False, '--failed', '-f', help='Output JSON file that stores dataverses/datasets failed to be crawled'
     )
@@ -69,4 +60,22 @@ class TyperOptions:
         '--debug-log',
         '-debug',
         help='Enable debug logging. This will create a debug log file in the log_files directory.',
+    )
+    metadata_source: str = typer.Option(
+        None,
+        '--metadata-source',
+        '-m',
+        help='The source of the metadata to crawl. This option can be used to filter harvested datasets.',
+    )
+    publication_status: str = typer.Option(
+        None,
+        '--publication-status',
+        '-ps',
+        help='The publication status of the datasets to crawl. Common values are "Published", "Draft", "Unpublished", "Deaccessioned". Depends on the installation',  # noqa: E501
+    )
+    semaphore_limit: int = typer.Option(
+        5,
+        '--semaphore-limit',
+        '-sl',
+        help='The maximum number of concurrent tasks when crawling datasets. Please adjust this number based on the expected load on the dataverse repository. Might need some trial and error to find the optimal number.',  # noqa: E501
     )

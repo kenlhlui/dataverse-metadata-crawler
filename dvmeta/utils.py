@@ -5,14 +5,12 @@ import os
 from hashlib import sha256
 from pathlib import Path
 
-import jmespath
 import orjson
 from dotenv import load_dotenv
 from loguru import logger
 
 from dvmeta.dirmanager import DirManager
-from dvmeta.models import CollectionData
-from dvmeta.models import Config
+from dvmeta.models.config import Config
 from dvmeta.timestamp import get_file_timestamp
 
 
@@ -114,44 +112,6 @@ def load_env() -> Config:
     load_dotenv()
     api_key = os.getenv('API_KEY') or None
     base_url = os.getenv('BASE_URL', '')
-    headers = {'X-Dataverse-key': api_key, 'Accept': 'application/json'} if api_key else {'Accept': 'application/json'}
-    return Config(api_key=api_key, base_url=base_url, headers=headers)
+    semaphore_limit = int(os.getenv('SEMAPHORE_LIMIT', 5))
 
-
-def count_files_size(read_dict: dict) -> tuple:
-    """Count the number of files and the total size of files in the dataset.
-
-    Args:
-        read_dict (dict): Dictionary containing the metadata of datasets
-
-    Returns:
-        int: Total number of files in the dataset
-        int: Total size of files in the dataset
-    """
-    filecount_list = []
-    filesize_list = []
-    for key, _item in read_dict.items():
-        if read_dict.get(key).get('data').get('files'):  # type: ignore
-            filecount_list.append(len(read_dict.get(key).get('data').get('files')))  # type: ignore
-            filesize_list.append(sum(jmespath.search('data.files[*].dataFile.filesize|[]', read_dict[key])))  # noqa: PLR1733
-        else:
-            filecount_list.append(0)
-            filesize_list.append(0)
-
-    return sum(filecount_list), sum(filesize_list)
-
-
-def update_config_with_collection_data(config: Config, collection_data: CollectionData) -> Config:
-    """Update the config with collection data.
-
-    Args:
-        config (Config): The config to update
-        collection_data (CollectionData): The validated collection data
-
-    Returns:
-        Config: The updated config
-    """
-    config.collection_id = collection_data.id
-    config.collection_alias = collection_data.alias
-    config.collection_name = collection_data.name
-    return config
+    return Config(api_key=api_key, base_url=base_url, semaphore_limit=semaphore_limit)

@@ -1,80 +1,44 @@
 """HTTP client class for making GET requests."""
 
 import asyncio
-from types import TracebackType
 from urllib.parse import urljoin
 
 import httpx
 from loguru import logger
 
-from dvmeta.models import Config
+from dvmeta.models.config import Config
 
 
 class HttpxClient:
     """HTTP client class for making GET requests."""
 
     def __init__(self, config: Config) -> None:
-        """Initialize HTTP client.
-
-        Args:
-            config (Config): Configuration settings
-            semaphore (asyncio.Semaphore): Semaphore object for limiting concurrent requests
-            sync_client (httpx.Client): Synchronous HTTP client
-            async_client (httpx.AsyncClient): Asynchronous HTTP client
-            async_sleep_time (int): Sleep time for asynchronous requests
-        """  # noqa: W505
         self.config = config
-        self.semaphore = asyncio.Semaphore(10)  # 10 concurrent requests # TODO: make this configurable
-        self.sync_client = httpx.Client(timeout=None, headers=dict(config.headers))
-        self.async_client = httpx.AsyncClient(timeout=None, headers=dict(config.headers))
-        self.async_sleep_time = 0  # TODO: make this configurable
         self.httpx_success_status = 200
+        self.semaphore_num = config.semaphore_limit
 
-    def __enter__(self) -> 'HttpxClient':
-        """Enter context manager.
+        self.header = (
+            {'Accept': 'application/json'}
+            if not config.api_key
+            else {'Accept': 'application/json', 'X-Dataverse-key': config.api_key}
+        )
 
-        Returns:
-            HttpxClient: Self reference
-        """
-        return self
-
-    def __exit__(
-        self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: TracebackType | None
-    ) -> None:
-        """Exit context manager and cleanup resources.
-
-        Args:
-            exc_type: Exception type if an exception was raised
-            exc_val: Exception value if an exception was raised
-            exc_tb: Exception traceback if an exception was raised
-        """
-        self.sync_client.close()
-        if not self.async_client.is_closed:
-            asyncio.run(self.async_client.aclose())
-
-    async def __aenter__(self) -> 'HttpxClient':
-        """Enter asynchronous context manager."""
-        return self
-
-    async def __aexit__(
-        self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: TracebackType | None
-    ) -> None:
-        """Exit asynchronous context manager and cleanup resources."""
-        await self.async_client.aclose()
-        self.sync_client.close()
-
-    async def _async_semaphore_client(self, url: str) -> httpx.Response | list[str]:
+    async def _async_semaphore_client(
+        self, url: str, semaphore: asyncio.Semaphore, client: httpx.AsyncClient
+    ) -> httpx.Response | list[str]:
         """Asynchronous HTTP client with semaphore.
 
         Args:
             url (str): URL to GET
+            semaphore (asyncio.Semaphore): Semaphore bound to the current event loop
+            client (httpx.AsyncClient): Async client bound to the current event loop
 
         Returns:
             httpx.Response: Response object
         """
-        async with self.semaphore:
+        async with semaphore:
             try:
-                response = await self.async_client.get(url)
+                response = await client.get(url)
                 if response.status_code != self.httpx_success_status:
                     # print(f'HTTP request Error for {url}: {response.status_code}')
                     return response
@@ -100,7 +64,7 @@ class HttpxClient:
         auth_url = urljoin(base_url, api_endpoint)
 
         try:
-            with self.sync_client as client:
+            with httpx.Client(timeout=None, headers=self.header) as client:
                 response = client.get(auth_url, headers=auth_headers)
                 logger.debug(f'API key authentication response: {response.text}')
                 return response.status_code == self.httpx_success_status
@@ -117,25 +81,26 @@ class HttpxClient:
         public_url: str = urljoin(base_url, '/api/info/version')
 
         try:
-            with self.sync_client as client:
+            with httpx.Client(timeout=None, headers=self.header) as client:
                 response = client.get(public_url)
                 return response.status_code == self.httpx_success_status
         except (httpx.HTTPStatusError, httpx.RequestError):
             return False
 
-    def sync_get(self, url: str) -> httpx.Response | None:
+    def sync_get(self, url: str, params: list | dict | None = None) -> httpx.Response | None:
         """Synchronous GET request.
 
         Args:
             url (str): URL to GET
+            parameters (dict | None): Additional parameters for the GET request
 
         Returns:
             httpx.Response | None: Response object or None if error
         """
         try:
             # Create a new client for each request to avoid the "closed client" issue
-            with httpx.Client(timeout=None, headers=dict(self.config.headers)) as client:
-                response = client.get(url)
+            with httpx.Client(timeout=None, headers=self.header) as client:
+                response = client.get(url, params=params)
                 return response if response.status_code == self.httpx_success_status else None
         except (httpx.HTTPStatusError, httpx.RequestError):
             return httpx.Response(
@@ -144,16 +109,20 @@ class HttpxClient:
                 request=httpx.Request('GET', url),
             )
 
-    async def async_get(self, url_list: list) -> list:
+    async def async_get(
+        self,
+        url_list: list,
+    ) -> list:
         """Asynchronous GET request.
 
         Args:
             url_list (list): List of URLs to GET
+            semaphore_num (int): Number of concurrent requests allowed
 
         Returns:
             list: List of httpx.Response objects
         """
-        tasks = [self._async_semaphore_client(url) for url in url_list]
-
-        # Using asyncio.gather to collect results
-        return await asyncio.gather(*tasks)
+        semaphore = asyncio.Semaphore(self.semaphore_num)  # TODO: make this configurable
+        async with httpx.AsyncClient(timeout=None, headers=self.header) as client:
+            tasks = [self._async_semaphore_client(url, semaphore, client) for url in url_list]
+            return await asyncio.gather(*tasks)
