@@ -24,10 +24,16 @@ class HttpxClient:
             async_sleep_time (int): Sleep time for asynchronous requests
         """  # noqa: W505
         self.config = config
-        self.sync_client = httpx.Client(timeout=None, headers=dict(config.headers))
-        self.async_sleep_time = 0  # TODO: make this configurable
         self.httpx_success_status = 200
         self.semaphore_num = config.semaphore
+
+        self.header = (
+            {'Accept': 'application/json'}
+            if not config.api_key
+            else {'Accept': 'application/json', 'X-Dataverse-key': config.api_key}
+        )
+
+        self.sync_client = httpx.Client(timeout=None, headers=self.header)
 
     def __enter__(self) -> 'HttpxClient':
         """Enter context manager.
@@ -135,7 +141,7 @@ class HttpxClient:
         """
         try:
             # Create a new client for each request to avoid the "closed client" issue
-            with httpx.Client(timeout=None, headers=dict(self.config.headers)) as client:
+            with httpx.Client(timeout=None, headers=self.header) as client:
                 response = client.get(url, params=params)
                 return response if response.status_code == self.httpx_success_status else None
         except (httpx.HTTPStatusError, httpx.RequestError):
@@ -159,6 +165,6 @@ class HttpxClient:
             list: List of httpx.Response objects
         """
         semaphore = asyncio.Semaphore(self.semaphore_num)  # TODO: make this configurable
-        async with httpx.AsyncClient(timeout=None, headers=dict(self.config.headers)) as client:
+        async with httpx.AsyncClient(timeout=None, headers=self.header) as client:
             tasks = [self._async_semaphore_client(url, semaphore, client) for url in url_list]
             return await asyncio.gather(*tasks)

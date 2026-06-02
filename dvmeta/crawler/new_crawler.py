@@ -22,28 +22,9 @@ class MetaDataCrawler:
 
     def __init__(self, config: Config) -> None:
         """Initialize the class with the configuration settings."""
-        self.config = self._define_headers(config)
+        self.config = config
         self.endpoints = Endpoints(config.base_url)
         self.client = HttpxClient(self.config)
-
-    @staticmethod
-    def _define_headers(config: Config) -> Config:
-        """Define the headers for the HTTP request.
-
-        Args:
-            config (Config): Configuration
-
-        Returns:
-            Config: Config with updated headers
-        """
-        headers = {'Accept': 'application/json'}
-
-        if config.api_key and str(config.api_key).lower() != 'none':
-            headers['X-Dataverse-key'] = config.api_key
-
-        config.headers = headers
-
-        return config
 
     def get_dataverse_ds_records(
         self, metadata_source: str | None = None, publication_status: str | None = None
