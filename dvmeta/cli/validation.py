@@ -1,14 +1,11 @@
 """This module contains functions for validating command line arguments and environment variables."""
 
 from click import MissingParameter
-from httpx import Response
 from loguru import logger
 from pydantic import ValidationError
 from typer import BadParameter
 
 from dvmeta.http import HttpxClient
-from dvmeta.models import CollectionData
-from dvmeta.models import CollectionsTreeResponseData
 from dvmeta.models import Config
 from dvmeta.models import DatasetVersion
 
@@ -117,48 +114,3 @@ def validate_connection(config: Config) -> bool:
 
     logger.info(f'Connection to the dataverse repository {config.base_url} is successful.')
     return False
-
-
-def validate_collections_tree(collection_tree: Response | None) -> dict:
-    """Validate the collections tree.
-
-    Args:
-        collection_tree (Response): The collections tree.
-
-    Returns:
-        dict: The collections tree.
-
-    Raises:
-        Exception: If the collections tree is empty.
-    """
-    if collection_tree is None or not isinstance(collection_tree, Response):
-        msg = 'The collections tree is empty. Exiting...'
-        raise Exception(msg)
-
-    if not collection_tree.json():
-        msg = 'The collections tree is empty. Exiting...'
-        raise Exception(msg)
-    return collection_tree.json()
-
-
-def validate_collection_data(collections_tree_json: dict) -> CollectionData:
-    """Validate the collections tree data using Pydantic.
-
-    Args:
-        collections_tree_json (dict): The JSON response from the API
-
-    Returns:
-        CollectionData: Validated collection data
-
-    Raises:
-        ValidationError: If validation fails
-    """
-    # Parse and validate the entire response
-    tree_model = CollectionsTreeResponseData(**collections_tree_json)
-
-    # Check if status is OK and data exists
-    if tree_model.status != 'OK' or tree_model.data is None:
-        msg = 'Collection is not found in the repository or invalid response format.'
-        raise Exception(msg)
-
-    return tree_model.data
