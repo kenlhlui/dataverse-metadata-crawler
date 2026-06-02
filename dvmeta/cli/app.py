@@ -118,7 +118,7 @@ def search(ctx: typer.Context) -> None:
     state.dataset_ids = parse_search_response(state.dataset_records)
 
     logger.info(
-        f'Search for datasets in collection "{state.config.collection_alias}" completed. Found {len(state.dataset_ids)} datasets.'
+        f'Search for datasets in collection "{state.config.collection_alias}" completed. Found {len(state.dataset_ids)} datasets.'  # noqa: E501
     )
 
 
