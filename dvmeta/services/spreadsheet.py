@@ -190,7 +190,7 @@ class Spreadsheet:
             file_stats = self._get_datafile_meta_usage(dataset_meta)
             file_size = self._get_data_files_size(dataset_meta)
             subject_list: list = citation.get('subject', []) or []
-            path_info = dataset_meta.get('path_info')
+            path_info = dataset_meta.get('dataset_path', 'Unknown')
 
             row: DatasetExportRow = {
                 'DatasetTitle': citation.get('title', '') or '',
@@ -202,7 +202,7 @@ class Spreadsheet:
                     if dataset.latestVersion.datasetPersistentId
                     else ''
                 ),
-                'DS_Path': path_info.get('path', 'root') if path_info else 'root',
+                'DS_Path': path_info,
                 'ID': dataset.id,
                 'DatasetPersistentId': dataset.latestVersion.datasetPersistentId,
                 'DatasetId': dataset.datasetId,
