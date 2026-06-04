@@ -40,10 +40,12 @@ class Spreadsheet:
     @staticmethod
     def _get_data_files_size(dictionary: dict) -> int | str:
         latest_version = dictionary.get('data', {}).get('latestVersion', {})
-        if 'files' in latest_version:
+        if latest_version.get('files'):
             data_files_size_list: list = jmespath.search('data.latestVersion.files[*].dataFile.filesize|[]', dictionary)
             if data_files_size_list:
                 return sum(data_files_size_list)
+        else:
+            return 0
         return 'Error'
 
     @staticmethod
