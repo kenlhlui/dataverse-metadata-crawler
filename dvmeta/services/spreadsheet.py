@@ -1,4 +1,3 @@
-# ruff: noqa: PLR1733
 """A module to manage the creation of CSV files from metadata dictionaries."""
 
 from pathlib import Path
