@@ -40,8 +40,6 @@ class CLIState:
     crawl_result: CrawlResult | None = None
     log: bool = True
     permission: bool = False
-    failed: bool = False
-    spreadsheet: bool = False
     metadata_source: str | None = None
     publication_status: str | None = None
 
@@ -62,8 +60,6 @@ def main(
     log: bool = TyperOptions.log,
     collection_alias: str = TyperOptions.collection_alias,
     version: str = TyperOptions.version,
-    failed: bool = TyperOptions.failed,
-    spreadsheet: bool = TyperOptions.spreadsheet,
     debug_log: bool = TyperOptions.debug_log,
     log_level: str = TyperOptions.log_level,
     metadata_source: str = TyperOptions.metadata_source,
@@ -85,16 +81,12 @@ def main(
     config.metadata_source = metadata_source
     config.semaphore_limit = semaphore_limit
 
-    # validate_api_token_presence(permission, config)
-
     auth_status = validate_connection(config)
     config.api_key = None if not auth_status else config.api_key
 
     state.config = config
     state.auth_status = auth_status
     state.log = log
-    state.failed = failed
-    state.spreadsheet = spreadsheet
     state.metadata_source = config.metadata_source
     state.exporter = ExportManager()
     state.publication_status = publication_status
@@ -111,7 +103,7 @@ def get_state(ctx: typer.Context) -> CLIState:
 
 @app.command()
 def search(ctx: typer.Context) -> None:
-    """Step 2: search for datasets in the collection."""
+    """Search for datasets in the collection."""
     state = get_state(ctx)
 
     with spinner():
@@ -130,7 +122,7 @@ def search(ctx: typer.Context) -> None:
 
 @app.command()
 def crawl_metadata(ctx: typer.Context) -> None:
-    """Step 3: crawl metadata."""
+    """Crawl dataset metadata."""
     state = get_state(ctx)
 
     if state.dataset_ids is None:
@@ -169,7 +161,7 @@ def crawl_metadata(ctx: typer.Context) -> None:
 
 @app.command()
 def crawl_permission(ctx: typer.Context) -> None:
-    """Step 4: crawl permissions."""
+    """Crawl dataset permissions."""
     state = get_state(ctx)
 
     if state.dataset_ids is None:
@@ -180,19 +172,23 @@ def crawl_permission(ctx: typer.Context) -> None:
             msg = 'API Token authentication failed or not provided. Skipping permission crawl.'
             logger.warning(msg)
             return
+        assert state.crawler
+        assert state.dataset_ids
+        assert state.exporter
+        assert state.config
         state.permission_records = asyncio.run(state.crawler.get_dataset_permissions(state.dataset_ids))
 
         if not state.skip_export:
             state.exporter.export(state.permission_records, export_type='permission')
 
         logger.info(
-            f'Permission metadata for collection "{state.config.collection_alias}" completed. Crawled {len(state.permission_records)} records.'
+            f'Permission metadata for collection "{state.config.collection_alias}" completed. Crawled {len(state.permission_records)} records.'  # noqa: E501
         )
 
 
 @app.command()
-def export_spreadsheet(ctx: typer.Context):
-    """Step 5: export to spreadsheet."""
+def export_spreadsheet(ctx: typer.Context) -> None:
+    """Export the dataset metadata (and permissions if available) to spreadsheet."""
     state = get_state(ctx)
 
     with spinner():
@@ -205,8 +201,8 @@ def export_spreadsheet(ctx: typer.Context):
 
 
 @app.command()
-def run_all(ctx: typer.Context):
-    """Run all steps in sequence."""
+def run_all(ctx: typer.Context) -> None:
+    """Run the full crawl process: search -> crawl metadata -> crawl permissions -> export spreadsheet. Export the metadata (with permissions if available) to JSON and spreadsheet."""  # noqa: E501, W505
     state = get_state(ctx)
     state.skip_export = True
 

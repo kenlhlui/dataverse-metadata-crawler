@@ -71,75 +71,86 @@ to launch the crawler directly in your web browser—no Git or Python installati
 
 ## 🛠️Usage
 
-### Basic Command
+### Commands
+
+The CLI is structured as a main command with global options followed by a subcommand:
+
 ```sh
-python3 dvmeta/main.py [-a AUTH] [-l] [-d] [-p] [-f] [-e] [-s] -c COLLECTION_ALIAS -v VERSION
+python3 -m dvmeta.cli.app [OPTIONS] COMMAND
+
+# Or uv
+uv run python -m dvmeta.cli.app [OPTIONS] COMMAND
 ```
-**Required arguments:**
 
-| **Option**         | **Short** | **Type** | **Description**                                                                                                                                                                                                                                                                            | **Default**     |
-|--------------------|-----------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------|
-| --collection_alias | -c        | TEXT     | The alias of the collection to crawl. <br/> See the guide [here](https://github.com/scholarsportal/dataverse-metadata-crawler/wiki/Guide:-How-to-find-the-COLLECTION_ALIAS-of-a-Dataverse-collection) to learn how to look for a the collection alias. <br/> **[required]**                                                                                                                                                                                                                                      | None            |
-| --version          | -v        | TEXT     | The Dataset version to crawl. Options include: <br/> • `draft` - The draft version, if any <br/> • `latest` - Either a draft (if exists) or the latest published version <br/> • `latest-published` - The latest published version <br/> • `x.y` - A specific version <br/> **[required]** | None (required) |
+**Subcommands:**
 
+| **Command**          | **Description**                                                     |
+|----------------------|---------------------------------------------------------------------|
+| `search`             | Search for datasets in the collection.                              |
+| `crawl-metadata`     | Crawl and export dataset metadata to JSON.                          |
+| `crawl-permission`   | Crawl and export dataset permission metadata to JSON.               |
+| `export-spreadsheet` | Export crawled metadata to CSV.                                     |
+| `run-all`            | Run all steps in sequence (search → crawl metadata → crawl permission → export spreadsheet). |
 
-**Optional arguments:**
+**Required options:**
 
-| **Option**        | **Short** | **Type** | **Description**                                                                                                                                                                                                 | **Default**               |
-|-------------------|-----------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------|
-| --auth            | -a        | TEXT     | Authentication token to access the Dataverse repository.                                                                                                                                                        | None                      |
-| --log   --no-log  | -l        |          | Output a log file.   Use `--no-log` to disable logging.                                                                                                                                                         | `log` (unless `--no-log`) |
-| --dvdfds_metadata | -d        |          | Output a JSON file containing metadata of Dataverses, Datasets, and Data Files.                                                                                                                                 |                           |
-| --permission      | -p        |          | Output a JSON file that stores permission metadata for all Datasets in the repository.                                                                                                                          |                           |
-| --emptydv         | -e        |          | Output a JSON file that stores all Dataverses which do **NOT** contain Datasets (though they might have child Dataverses which have Datasets).                                                                  |                           |
-| --failed          | -f        |          | Output a JSON file of Dataverses/Datasets that failed to be crawled.                                                                                                                                            |                           |
-| --spreadsheet     | -s        |          | Output a CSV file of the metadata of Datasets.<br>See the [spreadsheet column explanation notes](https://github.com/scholarsportal/dataverse-metadata-crawler/wiki/Explanation-of--Spreadsheet-Column-Headers). |                           |
-| --debug-log       | -debug    |          | Enable debug logging. This will create a debug log file in the log_files directory.                                                                                                                             |                           |
-| --help            |           |          | Show the help message.                                                                                                                                                                                          |                           |
+| **Option**           | **Short** | **Type** | **Description**                                                                                                                                                                                                                                                                                                             | **Default**     |
+|----------------------|-----------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------|
+| --collection_alias   | -c        | TEXT     | The alias of the collection to crawl. <br/> See the guide [here](https://github.com/scholarsportal/dataverse-metadata-crawler/wiki/Guide:-How-to-find-the-COLLECTION_ALIAS-of-a-Dataverse-collection) to learn how to find the collection alias. <br/> **[required]**                                                       | None            |
+| --version            | -v        | TEXT     | The dataset version to crawl. Options include: <br/> • `draft` - The draft version, if any <br/> • `latest` - Either a draft (if exists) or the latest published version <br/> • `latest-published` - The latest published version <br/> • `x.y` - A specific version (e.g. `1.0`) <br/> • `x` - Same as `x.0` <br/> **[required]** | None (required) |
+
+**Optional options:**
+
+| **Option**              | **Short** | **Type** | **Description**                                                                                                                                                                                                 | **Default** |
+|-------------------------|-----------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|
+| --auth                  | -a        | TEXT     | Authentication token to access the Dataverse repository. Can also be set via the `API_KEY` environment variable.                                                                                                | None        |
+| --log / --no-log        | -l        |          | Output a log file. Use `--no-log` to disable.                                                                                                                                                                   | `--log`     |                                                                                                                                      | False       |
+| --spreadsheet           | -s        |          | Output a CSV file of the metadata of datasets.<br>See the [spreadsheet column explanation notes](https://github.com/scholarsportal/dataverse-metadata-crawler/wiki/Explanation-of--Spreadsheet-Column-Headers). | False       |
+| --metadata-source       | -m        | TEXT     | Filter results by metadata source. Useful for filtering harvested datasets.                                                                                                                                     | None        |
+| --publication-status    | -ps       | TEXT     | Filter datasets by publication status (e.g. `Published`, `Draft`, `Unpublished`, `Deaccessioned`). Available values depend on the Dataverse installation.                                                       | None        |
+| --semaphore-limit       | -sl       | INT      | Maximum number of concurrent tasks when crawling datasets. Adjust based on expected load on the Dataverse repository.                                                                                           | 5           |
+| --log-level             |           | TEXT     | Logging level for console and file output. Options: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`.                                                                                                            | `INFO`      |
+| --debug-log             | -debug    |          | Enable debug logging to a file in the `logs` directory.                                                                                                                                                         | False       |
+| --help                  |           |          | Show the help message.                                                                                                                                                                                          |             |
 
 ### Examples
 ```sh
-# Export the metadata of latest version of datasets under collection 'demo' to JSON
-# python3 dvmeta/main.py -c demo -v latest -d
-python3 -m dvmeta.main -c demo -v latest -d
+# Run all steps: crawl metadata and permissions for the latest version of collection 'demo'
+python3 -m dvmeta.cli.app -c demo -v latest run-all
 
-# Export the metadata of version 1.0 of all datasets under collection 'demo' to JSON and CSV
-# python3 dvmeta/main.py -c demo -v 1.0 -d -s
-python3 -m dvmeta.main -c demo -v 1.0 -d -s
+# Run all steps with spreadsheet output and an API token
+python3 -m dvmeta.cli.app -c demo -v latest -p -s -a xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx run-all
 
-# Export the metadata and permission metadata of version 1.0 of all datasets under collection 'demo' to JSON and CSV, with the API token specified in the CLI interface
-# python3 dvmeta/main.py -c demo -v 1.0 -d -s -p -a xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx
-python3 -m dvmeta.main -c demo -v latest -d -s -p -a xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx
+# Crawl metadata only for version 1.0 of collection 'demo'
+python3 -m dvmeta.cli.app -c demo -v 1.0 crawl-metadata
 
+# Filter by publication status and metadata source
+python3 -m dvmeta.cli.app -c demo -v latest -ps Published -m harvested run-all
+
+# Run with increased concurrency and debug logging
+python3 -m dvmeta.cli.app -c demo -v latest --semaphore-limit 10 --debug-log run-all
 ```
 
 ## 📂Output Structure
 
-| File                                      | Description                                                                                                                             |
-|-------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
-| ds_metadata_yyyymmdd-HHMMSS.json          | Datasets representation & data files metadata in JSON format.                                                                                    |
-| empty_dv_yyyymmdd-HHMMSS.json             | The id of empty dataverse(s) in list format.                                                                                            |
-| failed_metadata_uris_yyyymmdd-HHMMSS.json | The URIs (URL) of datasets failed to be downloaded.                                                                                     |
-| permission_dict_yyyymmdd-HHMMSS.json      | The permission metadata of datasets with their dataset id.                                                                               |
-| pid_dict_yyyymmdd-HHMMSS.json             | Datasets' basic info with hierarchical information dictionary.Only exported if -p (permission) flag is used without -d (metadata) flag. |
-| pid_dict_dd_yyyymmdd-HHMMSS.json          | The Hierarchical information of deaccessioned/draft datasets.                                                                           |
-| ds_metadata_yyyymmdd-HHMMSS.csv           | Datasets and their data files' metadata in CSV format.                                                                                     |
-| log_yyyymmdd-HHMMSS.txt                   | Summary of the crawling work.                                                                                                           |
+| File                                          | Description                                                                                                    |
+|-----------------------------------------------|----------------------------------------------------------------------------------------------------------------|
+| `ds_metadata_yyyymmdd-HHMMSS.json`            | Datasets representation & data files metadata in JSON format. Always exported.                                 |
+| `permission_dict_yyyymmdd-HHMMSS.json`        | Permission metadata for all datasets. Exported when API authentication succeeds (`--auth` / `API_KEY`).        |
+| `ds_metadata_yyyymmdd-HHMMSS.csv`             | Datasets and their data files' metadata in CSV format. Always exported with `run-all`.                         |
+| `log_yyyymmdd-HHMMSS.txt`                     | Summary of the crawling work. Exported by default; disabled with `--no-log`.                                   |
+| `debug.log`                                   | Debug log output. Exported with `--debug-log` / `-debug`.                                                      |
 
 ```sh
 exported_files/
 ├── json_files/
-│   └── ds_metadata_yyyymmdd-HHMMSS.json # With -d flag enabled
-│   └── empty_dv_yyyymmdd-HHMMSS.json # With -e flag enabled
-│   └── failed_metadata_uris_yyyymmdd-HHMMSS.json  # With -f flag enabled
-│   └── permission_dict_yyyymmdd-HHMMSS.json # With only -p flag enabled
-│   └── pid_dict_yyyymmdd-HHMMSS.json # With only -p flag enabled
-│   └── pid_dict_dd_yyyymmdd-HHMMSS.json # Hierarchical information of deaccessioned/draft datasets.
+│   ├── ds_metadata_yyyymmdd-HHMMSS.json        # Always exported
+│   └── permission_dict_yyyymmdd-HHMMSS.json    # Only when API authentication succeeds
 ├── csv_files/
-│   └── ds_metadata_yyyymmdd-HHMMSS.csv # with -s flag enabled
+│   └── ds_metadata_yyyymmdd-HHMMSS.csv         # Always exported with run-all
 └── logs_files/
-    └── log_yyyymmdd-HHMMSS.txt # Exported by default, without specifying --no-log
-    └── debug.log # Export by using -debug flag
+    ├── log_yyyymmdd-HHMMSS.txt                 # Exported by default; use --no-log to disable
+    └── debug.log                               # Only with --debug-log / -debug
 ```
 
 ## ⚠️Disclaimer

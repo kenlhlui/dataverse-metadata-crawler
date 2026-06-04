@@ -41,15 +41,6 @@ class TyperOptions:
         prompt_required=True,
         callback=validate_version_type,
     )
-    failed: bool = typer.Option(
-        False, '--failed', '-f', help='Output JSON file that stores dataverses/datasets failed to be crawled'
-    )
-    spreadsheet: bool = typer.Option(
-        False,
-        '--spreadsheet',
-        '-s',
-        help='Output a CSV file of the metadata of datasets',
-    )
     debug_log: bool = typer.Option(
         False,
         '--debug-log',
