@@ -1,17 +1,18 @@
 """Setup custom logging configuration with Loguru."""
 
-import logging
 from pathlib import Path
 
 from loguru import logger
 
+from dvmeta.models.log_level import LogLevel
 
-def setup_logging(log_file_dir: Path | None = None, log_level: int = logging.INFO) -> None:
+
+def setup_logging(log_file_dir: Path | None = None, log_level: str = LogLevel.INFO) -> None:
     """Setup logging configuration for Loguru.
 
     Args:
         log_file_dir (Path | None): Directory to save log files. If None, logs will only be printed to console.
-        log_level (int): Logging level for both console and file handlers. Defaults to logging.INFO
+        log_level (str): Logging level for both console and file handlers. Defaults to logging.INFO
     """
     # Remove existing handlers
     logger.remove()
@@ -33,7 +34,7 @@ def setup_logging(log_file_dir: Path | None = None, log_level: int = logging.INF
         log_file_path.parent.mkdir(parents=True, exist_ok=True)
         logger.add(
             sink=str(log_file_path),
-            level=logging.DEBUG,
+            level=log_level,
             format='{time:YYYY-MM-DD HH:mm:ss} - {name} - {level} - {message}',
             encoding='utf-8',
         )

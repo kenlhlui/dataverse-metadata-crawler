@@ -26,6 +26,8 @@ from dvmeta.services.timestamp import get_current_time
 from dvmeta.services.utils import load_env
 
 
+setup_logging()  # Initialize logging at the module level to ensure it's set up before any commands are run
+
 app = typer.Typer()
 
 
@@ -64,12 +66,15 @@ def main(
     failed: bool = TyperOptions.failed,
     spreadsheet: bool = TyperOptions.spreadsheet,
     debug_log: bool = TyperOptions.debug_log,
+    log_level: str = TyperOptions.log_level,
     metadata_source: str = TyperOptions.metadata_source,
     publication_status: str = TyperOptions.publication_status,
     semaphore_limit: int = TyperOptions.semaphore_limit,
 ):
     """Step 1: load config and validate inputs. Runs before every subcommand."""
-    setup_logging(DirManager().log_files_dir() if debug_log else None)
+    setup_logging(
+        DirManager().log_files_dir() if debug_log else None, log_level=log_level
+    )  # Reconfigure logging if debug_log is set, otherwise use default configuration
 
     state = CLIState()
     state.timestamps = Timestamps(start_time=get_current_time())

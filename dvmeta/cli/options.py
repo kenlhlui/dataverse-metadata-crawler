@@ -3,6 +3,7 @@
 import typer
 
 from dvmeta.cli.validation import validate_version_type
+from dvmeta.models.log_level import LogLevel
 
 
 class TyperOptions:
@@ -59,7 +60,12 @@ class TyperOptions:
         False,
         '--debug-log',
         '-debug',
-        help='Enable debug logging. This will create a debug log file in the log_files directory.',
+        help='Enable debug logging to a file. This will create a log file in the logs directory ',
+    )
+    log_level: str = typer.Option(
+        LogLevel.INFO,
+        '--log-level',
+        help=f'The logging level for console and file output. Options are: {", ".join(LogLevel.__members__.keys())}. Default is INFO.',
     )
     metadata_source: str = typer.Option(
         None,
