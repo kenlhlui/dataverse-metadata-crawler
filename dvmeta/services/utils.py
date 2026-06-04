@@ -9,9 +9,9 @@ import orjson
 from dotenv import load_dotenv
 from loguru import logger
 
-from dvmeta.dirmanager import DirManager
 from dvmeta.models.config import Config
-from dvmeta.timestamp import get_file_timestamp
+from dvmeta.services.dir_manager import DirManager
+from dvmeta.services.timestamp import get_file_timestamp
 
 
 def count_key(key: dict | list | tuple) -> int:

@@ -1,8 +1,6 @@
 """ExportManager class for managing JSON exports with descriptions and tracking."""
 
-from pathlib import Path
-
-from dvmeta.utils import orjson_export
+from dvmeta.services.utils import orjson_export
 
 
 class ExportManager:
@@ -48,26 +46,3 @@ class ExportManager:
                     'checksum': checksum,
                 }
             )
-
-    def add_spreadsheet_record(self, csv_file_path: Path, csv_file_checksum: str) -> None:
-        """Add a record for the spreadsheet export to the tracking dictionary.
-
-        Args:
-            csv_file_path: Path to the CSV file
-            csv_file_checksum: Checksum of the CSV file
-        """
-        self.tracking_nested_list.append(
-            {
-                'type': self.DESCRIPTIONS.get('spreadsheet'),
-                'path': csv_file_path,
-                'checksum': csv_file_checksum,
-            }
-        )
-
-    def get_tracking_data(self) -> list:
-        """Get the current tracking nested list of dictionaries.
-
-        Returns:
-            list: The tracking nested list of dictionaries containing exported file information.
-        """
-        return self.tracking_nested_list

@@ -14,16 +14,16 @@ from dvmeta.crawler.utils import get_pids_from_search_response
 from dvmeta.crawler.utils import merge_oaiore_to_meta_dict
 from dvmeta.crawler.utils import merge_permission_to_meta_dict
 from dvmeta.crawler.utils import parse_search_response
-from dvmeta.custom_logging import CustomLogger
-from dvmeta.dirmanager import DirManager
-from dvmeta.exporter import ExportManager
-from dvmeta.log_generation import write_to_log
 from dvmeta.models.config import Config
 from dvmeta.models.crawl_result import CrawlResult
-from dvmeta.spreadsheet import Spreadsheet
-from dvmeta.timestamp import Timestamps
-from dvmeta.timestamp import get_current_time
-from dvmeta.utils import load_env
+from dvmeta.services.custom_logging import setup_logging
+from dvmeta.services.dir_manager import DirManager
+from dvmeta.services.exporter import ExportManager
+from dvmeta.services.log_generation import write_to_log
+from dvmeta.services.spreadsheet import Spreadsheet
+from dvmeta.services.timestamp import Timestamps
+from dvmeta.services.timestamp import get_current_time
+from dvmeta.services.utils import load_env
 
 
 app = typer.Typer()
@@ -69,7 +69,7 @@ def main(
     semaphore_limit: int = TyperOptions.semaphore_limit,
 ):
     """Step 1: load config and validate inputs. Runs before every subcommand."""
-    CustomLogger.setup_logging(DirManager().log_files_dir() if debug_log else None)
+    setup_logging(DirManager().log_files_dir() if debug_log else None)
 
     state = CLIState()
     state.timestamps = Timestamps(start_time=get_current_time())
@@ -209,9 +209,7 @@ def run_all(ctx: typer.Context):
     assert state.crawl_result is not None
     assert state.permission_records is not None
     assert state.exporter is not None
-    state.crawl_result.meta_dict = merge_permission_to_meta_dict(
-        state.crawl_result.meta_dict, state.permission_records
-    )
+    state.crawl_result.meta_dict = merge_permission_to_meta_dict(state.crawl_result.meta_dict, state.permission_records)
     state.exporter.export(state.crawl_result.meta_dict, export_type='ds_metadata')
     export_spreadsheet(ctx)
 

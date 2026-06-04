@@ -5,9 +5,9 @@ from loguru import logger
 from pydantic import ValidationError
 from typer import BadParameter
 
-from dvmeta.http import HttpxClient
 from dvmeta.models.config import Config
 from dvmeta.models.models import DatasetVersion
+from dvmeta.services.client.http import HttpxClient
 
 
 def validate_version_type(value: str) -> str | float:

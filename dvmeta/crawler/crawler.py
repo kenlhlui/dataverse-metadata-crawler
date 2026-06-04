@@ -12,9 +12,9 @@ Flow:
 
 from loguru import logger
 
-from dvmeta.endpoints import Endpoints
-from dvmeta.http import HttpxClient
 from dvmeta.models.config import Config
+from dvmeta.services.client.endpoints import Endpoints
+from dvmeta.services.client.http import HttpxClient
 
 
 class MetaDataCrawler:
