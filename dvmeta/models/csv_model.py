@@ -14,6 +14,7 @@ class DatasetExportRow(TypedDict, total=False):
     DatasetPersistentId: str
     DatasetId: int
 
+    Version: str
     VersionState: str
     LastUpdateTime: str
     ReleaseTime: str

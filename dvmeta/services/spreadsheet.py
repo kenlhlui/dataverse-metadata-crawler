@@ -82,6 +82,8 @@ class Spreadsheet:
     @staticmethod
     def _get_dataset_version(dataset_meta: dict) -> float | str:
         latest_version = dataset_meta.get('data', {}).get('latestVersion', {})
+        if latest_version.get('versionState') == 'DRAFT':
+            return 'DRAFT'
         version_number = latest_version.get('versionNumber')
         version_minor_number = latest_version.get('versionMinorNumber')
         if version_number is not None and version_minor_number is not None:
@@ -210,7 +212,7 @@ class Spreadsheet:
                 'LastUpdateTime': dataset.latestVersion.lastUpdateTime,
                 'ReleaseTime': dataset.latestVersion.releaseTime,
                 'CreateTime': dataset.latestVersion.createTime,
-                'Version': self._get_dataset_version(dataset_meta),
+                'Version': str(self._get_dataset_version(dataset_meta)),
                 'FileCount': self._get_data_files_count(dataset_meta),
                 'FileSize': file_size,
                 'FileSize_normalized': convert_size(file_size),
