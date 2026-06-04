@@ -7,7 +7,6 @@ requires-python = ">=3.10"
 readme = "README.md"
 license = "MIT"
 dependencies = [
-    "httpx>=0.27.2,<0.28",
     "orjson>=3.10.14,<4",
     "asyncio>=3.4.3,<4",
     "jmespath>=1.0.1,<2",
@@ -20,6 +19,7 @@ dependencies = [
     "ipywidgets>=8.1.5,<9",
     "pydantic>=2.11.4,<3",
     "loguru>=0.7.3",
+    "httpx2>=2.3.0",
 ]
 
 [dependency-groups]

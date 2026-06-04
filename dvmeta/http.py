@@ -3,7 +3,7 @@
 import asyncio
 from urllib.parse import urljoin
 
-import httpx
+import httpx2
 from loguru import logger
 
 from dvmeta.models.config import Config
@@ -24,17 +24,17 @@ class HttpxClient:
         )
 
     async def _async_semaphore_client(
-        self, url: str, semaphore: asyncio.Semaphore, client: httpx.AsyncClient
-    ) -> httpx.Response | list[str]:
+        self, url: str, semaphore: asyncio.Semaphore, client: httpx2.AsyncClient
+    ) -> httpx2.Response | list[str]:
         """Asynchronous HTTP client with semaphore.
 
         Args:
             url (str): URL to GET
             semaphore (asyncio.Semaphore): Semaphore bound to the current event loop
-            client (httpx.AsyncClient): Async client bound to the current event loop
+            client (httpx2.AsyncClient): Async client bound to the current event loop
 
         Returns:
-            httpx.Response: Response object
+            httpx2.Response: Response object
         """
         async with semaphore:
             try:
@@ -43,12 +43,12 @@ class HttpxClient:
                     # print(f'HTTP request Error for {url}: {response.status_code}')
                     return response
                 return response
-            except (httpx.HTTPStatusError, httpx.RequestError):
+            except (httpx2.HTTPStatusError, httpx2.RequestError):
                 # print(f'HTTP request Error for {url}: {exc}')
-                return httpx.Response(
+                return httpx2.Response(
                     status_code=500,  # Server error as a fallback
                     text='Error occurred during request',
-                    request=httpx.Request('GET', url),
+                    request=httpx2.Request('GET', url),
                 )
 
     def authenticate_api_key(self) -> bool:
@@ -64,11 +64,11 @@ class HttpxClient:
         auth_url = urljoin(base_url, api_endpoint)
 
         try:
-            with httpx.Client(timeout=None, headers=self.header) as client:
+            with httpx2.Client(timeout=None, headers=self.header) as client:
                 response = client.get(auth_url, headers=auth_headers)
                 logger.debug(f'API key authentication response: {response.text}')
                 return response.status_code == self.httpx_success_status
-        except (httpx.HTTPStatusError, httpx.RequestError):
+        except (httpx2.HTTPStatusError, httpx2.RequestError):
             return False
 
     def authenticate_dv_connection(self) -> bool:
@@ -81,13 +81,13 @@ class HttpxClient:
         public_url: str = urljoin(base_url, '/api/info/version')
 
         try:
-            with httpx.Client(timeout=None, headers=self.header) as client:
+            with httpx2.Client(timeout=None, headers=self.header) as client:
                 response = client.get(public_url)
                 return response.status_code == self.httpx_success_status
-        except (httpx.HTTPStatusError, httpx.RequestError):
+        except (httpx2.HTTPStatusError, httpx2.RequestError):
             return False
 
-    def sync_get(self, url: str, params: list | dict | None = None) -> httpx.Response | None:
+    def sync_get(self, url: str, params: list | dict | None = None) -> httpx2.Response | None:
         """Synchronous GET request.
 
         Args:
@@ -95,18 +95,18 @@ class HttpxClient:
             parameters (dict | None): Additional parameters for the GET request
 
         Returns:
-            httpx.Response | None: Response object or None if error
+            httpx2.Response | None: Response object or None if error
         """
         try:
             # Create a new client for each request to avoid the "closed client" issue
-            with httpx.Client(timeout=None, headers=self.header) as client:
+            with httpx2.Client(timeout=None, headers=self.header) as client:
                 response = client.get(url, params=params)
                 return response if response.status_code == self.httpx_success_status else None
-        except (httpx.HTTPStatusError, httpx.RequestError):
-            return httpx.Response(
+        except (httpx2.HTTPStatusError, httpx2.RequestError):
+            return httpx2.Response(
                 status_code=500,  # Server error as a fallback
                 text='Error occurred during request',
-                request=httpx.Request('GET', url),
+                request=httpx2.Request('GET', url),
             )
 
     async def async_get(
@@ -120,9 +120,9 @@ class HttpxClient:
             semaphore_num (int): Number of concurrent requests allowed
 
         Returns:
-            list: List of httpx.Response objects
+            list: List of httpx2.Response objects
         """
         semaphore = asyncio.Semaphore(self.semaphore_num)  # TODO: make this configurable
-        async with httpx.AsyncClient(timeout=None, headers=self.header) as client:
+        async with httpx2.AsyncClient(timeout=None, headers=self.header) as client:
             tasks = [self._async_semaphore_client(url, semaphore, client) for url in url_list]
             return await asyncio.gather(*tasks)
