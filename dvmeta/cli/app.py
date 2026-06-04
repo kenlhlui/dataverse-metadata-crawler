@@ -192,6 +192,12 @@ def export_spreadsheet(ctx: typer.Context) -> None:
     state = get_state(ctx)
 
     with spinner():
+        if state.crawl_result is None or state.crawl_result.meta_dict is None:
+            crawl_metadata(ctx)
+
+        if state.permission and (state.permission_records is None):
+            crawl_permission(ctx)
+
         assert state.crawl_result is not None
         assert state.crawl_result.meta_dict is not None
         assert state.config is not None
@@ -205,6 +211,8 @@ def run_all(ctx: typer.Context) -> None:
     """Run the full crawl process: search -> crawl metadata -> crawl permissions -> export spreadsheet. Export the metadata (with permissions if available) to JSON and spreadsheet."""  # noqa: E501, W505
     state = get_state(ctx)
     state.skip_export = True
+    log = state.log
+    state.log = False  # Defer log write until the full pipeline completes
 
     search(ctx)
     crawl_metadata(ctx)
@@ -216,9 +224,15 @@ def run_all(ctx: typer.Context) -> None:
         state.crawl_result.meta_dict = merge_permission_to_meta_dict(
             state.crawl_result.meta_dict, state.permission_records
         )
-    else:
-        state.exporter.export(state.crawl_result.meta_dict, export_type='ds_metadata')
+
+    state.exporter.export(state.crawl_result.meta_dict, export_type='ds_metadata')
     export_spreadsheet(ctx)
+
+    if log:
+        assert state.config is not None
+        assert state.timestamps is not None
+        state.timestamps.end_time = get_current_time()
+        write_to_log(state.config, state.timestamps, state.crawl_result)
 
 
 if __name__ == '__main__':
