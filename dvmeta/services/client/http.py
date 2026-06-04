@@ -4,7 +4,6 @@ import asyncio
 from urllib.parse import urljoin
 
 import httpx2
-from loguru import logger
 
 from dvmeta.models.config import Config
 
@@ -66,7 +65,6 @@ class HttpxClient:
         try:
             with httpx2.Client(timeout=None, headers=self.header) as client:
                 response = client.get(auth_url, headers=auth_headers)
-                logger.debug(f'API key authentication response: {response.text}')
                 return response.status_code == self.httpx_success_status
         except (httpx2.HTTPStatusError, httpx2.RequestError):
             return False

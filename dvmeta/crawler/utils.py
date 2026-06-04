@@ -52,7 +52,6 @@ def merge_oaiore_to_meta_dict(meta_dict: dict, oaiore_metadata: dict) -> dict:
     for dataset_id, dataset_meta in meta_dict.items():
         dataset_pid = dataset_meta.get('data', {}).get('latestVersion', {}).get('datasetPersistentId')
         oaiore_meta = oaiore_metadata.get(dataset_pid)
-        logger.debug(f'OAI-ORE metadata for dataset ID {dataset_id} (PID {dataset_pid}): {oaiore_meta}')
         if oaiore_meta:
             path = get_path_from_oaiore(oaiore_meta)
             if path:
@@ -96,7 +95,6 @@ def get_path_from_oaiore(oaiore_response: dict) -> str | None:
     dataset_name = oaiore_response.get('ore:describes', {}).get('schema:name')
     ispartof = oaiore_response.get('ore:describes', {}).get('schema:isPartOf', [])
     if not ispartof:
-        logger.debug('No schema:isPartOf found in the OAI_ORE response.')
         return None
 
     return extract_path(ispartof, dataset_name)
@@ -114,7 +112,6 @@ def merge_permission_to_meta_dict(meta_dict: dict, permission_metadata: dict) ->
     """
     for dataset_id, dataset_meta in meta_dict.items():
         permissions = permission_metadata.get(dataset_id)
-        logger.debug(f'Permission metadata for dataset ID {dataset_id}: {permissions}')
         if permissions is not None:
             dataset_meta['permissions'] = permissions
         else:

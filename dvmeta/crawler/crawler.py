@@ -10,8 +10,6 @@ Flow:
 
 """
 
-from loguru import logger
-
 from dvmeta.models.config import Config
 from dvmeta.services.client.endpoints import Endpoints
 from dvmeta.services.client.http import HttpxClient
@@ -64,7 +62,6 @@ class MetaDataCrawler:
             if publication_status:
                 params.append(('fq', f'publicationStatus:"{publication_status}"'))
 
-            logger.debug(f'Fetching datasets with params {params} from Search API...')
             response = self.client.sync_get(search_url, params=params)
 
             if response is None:
