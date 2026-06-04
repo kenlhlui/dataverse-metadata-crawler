@@ -18,12 +18,6 @@ class TyperOptions:
         envvar='API_KEY',
     )
     log: bool = typer.Option(True, '--log/--no-log', '-l', help='Output log file')
-    permission: bool = typer.Option(
-        False,
-        '--permission',
-        '-p',
-        help='Output JSON file that stores permission metadata of all datasets in the repository',
-    )
     collection_alias: str = typer.Option(
         ...,
         '--collection_alias',

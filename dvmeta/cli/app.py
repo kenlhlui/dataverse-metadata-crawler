@@ -7,7 +7,6 @@ from loguru import logger
 
 from dvmeta.cli.options import TyperOptions
 from dvmeta.cli.utils import spinner
-from dvmeta.cli.validation import validate_api_token_presence
 from dvmeta.cli.validation import validate_connection
 from dvmeta.crawler.crawler import MetaDataCrawler
 from dvmeta.crawler.utils import get_pids_from_search_response
@@ -48,6 +47,7 @@ class CLIState:
 
     exporter: ExportManager | None = None
     skip_export: bool = False
+    auth_status: bool = False
 
     dataset_records: Any | None = None
     dataset_ids: list[str] | None = None
@@ -60,7 +60,6 @@ def main(
     ctx: typer.Context,
     auth: str = TyperOptions.auth,
     log: bool = TyperOptions.log,
-    permission: bool = TyperOptions.permission,
     collection_alias: str = TyperOptions.collection_alias,
     version: str = TyperOptions.version,
     failed: bool = TyperOptions.failed,
@@ -86,14 +85,14 @@ def main(
     config.metadata_source = metadata_source
     config.semaphore_limit = semaphore_limit
 
-    validate_api_token_presence(permission, config)
+    # validate_api_token_presence(permission, config)
 
     auth_status = validate_connection(config)
     config.api_key = None if not auth_status else config.api_key
 
     state.config = config
+    state.auth_status = auth_status
     state.log = log
-    state.permission = permission
     state.failed = failed
     state.spreadsheet = spreadsheet
     state.metadata_source = config.metadata_source
@@ -177,6 +176,10 @@ def crawl_permission(ctx: typer.Context) -> None:
         search(ctx)
 
     with spinner():
+        if not state.auth_status:
+            msg = 'API Token authentication failed or not provided. Skipping permission crawl.'
+            logger.warning(msg)
+            return
         state.permission_records = asyncio.run(state.crawler.get_dataset_permissions(state.dataset_ids))
 
         if not state.skip_export:
@@ -212,10 +215,13 @@ def run_all(ctx: typer.Context):
     crawl_permission(ctx)
 
     assert state.crawl_result is not None
-    assert state.permission_records is not None
     assert state.exporter is not None
-    state.crawl_result.meta_dict = merge_permission_to_meta_dict(state.crawl_result.meta_dict, state.permission_records)
-    state.exporter.export(state.crawl_result.meta_dict, export_type='ds_metadata')
+    if state.permission_records:
+        state.crawl_result.meta_dict = merge_permission_to_meta_dict(
+            state.crawl_result.meta_dict, state.permission_records
+        )
+    else:
+        state.exporter.export(state.crawl_result.meta_dict, export_type='ds_metadata')
     export_spreadsheet(ctx)
 
 

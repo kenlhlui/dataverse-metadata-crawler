@@ -1,6 +1,5 @@
 """This module contains functions for validating command line arguments and environment variables."""
 
-from click import MissingParameter
 from loguru import logger
 from pydantic import ValidationError
 from typer import BadParameter
@@ -31,21 +30,6 @@ def validate_version_type(value: str) -> str | float:
         msg = 'Must be "draft", "latest", "latest-published", or a number like "1" or "1.2".'
         msg = f'Invalid version: {value}. Must be "draft", "latest", "latest-published", or a number like "1" or "1.2".'
         raise BadParameter(msg)
-
-
-def validate_api_token_presence(permission_option: bool, config: Config) -> None:
-    """Validate whether API_KEY is supplied when crawling permission metadata option is enabled.
-
-    Args:
-        permission_option (bool): Value of -p argument.
-        config (Config): The config
-
-    Raises:
-        MissingParameter: If the combination of options is invalid.
-    """
-    if permission_option and (config.api_key is None or config.api_key == 'None'):
-        msg = 'Crawling permission metadata requires API Token. Please provide the API Token. Exiting...'
-        raise MissingParameter(msg, param_type='parameter')
 
 
 def validate_connection(config: Config) -> bool:
