@@ -1,10 +1,10 @@
 """A module to manage the creation of CSV files from metadata dictionaries."""
 
+import csv
 from pathlib import Path
 from urllib.parse import urljoin
 
 import jmespath
-import pandas as pd
 from loguru import logger
 
 from dvmeta.models.config import Config
@@ -151,11 +151,10 @@ class Spreadsheet:
         with Path(self.spreadsheet_order_file_path).open(encoding='utf-8') as file:
             return file.read().splitlines()
 
-    def _reorder_df_columns(self, df: pd.DataFrame) -> pd.DataFrame:
+    def _get_column_order(self, row_keys: list[str]) -> list[str]:
         order_list = self._get_spreadsheet_order()
-        valid_columns = [col for col in order_list if col in df.columns]
-        remaining_columns = [col for col in df.columns if col not in valid_columns]
-        return df[valid_columns + remaining_columns]
+        valid_columns = [col for col in order_list if col in row_keys]
+        return valid_columns + [col for col in row_keys if col not in valid_columns]
 
     def make_csv_file(self, meta_dict: dict) -> tuple[Path, str]:
         """Create a CSV file from the nested metadata list.
@@ -294,10 +293,11 @@ class Spreadsheet:
 
             rows.append(self.serialize_row(row))
 
-        df = pd.DataFrame(rows)
-        df = self._reorder_df_columns(df)
-
-        df.to_csv(csv_file_path, index=False)
+        fieldnames = self._get_column_order(list(rows[0].keys())) if rows else []
+        with csv_file_path.open('w', newline='', encoding='utf-8') as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(rows)
 
         checksum = gen_checksum(csv_file_path)
         logger.info(f'Exported Dataset Metadata CSV: {csv_file_path}\nChecksum (SHA-256): {checksum}')
