@@ -23,7 +23,7 @@ to launch the crawler directly in your web browser—no Git or Python installati
 
 ### 📦Prerequisites
 1. [Git](https://git-scm.com/)
-2. [Python 3.10+](https://www.python.org/)
+2. [Python 3.11+](https://www.python.org/)
 ---
 1. Clone the repository
    ```sh
