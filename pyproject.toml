@@ -24,8 +24,11 @@ dependencies = [
 [dependency-groups]
 dev = ["ipykernel>=6.29.5,<7"]
 
+[project.scripts]
+dvmeta = 'dvmeta.cli.app:app'
+
 [tool.uv]
-package = false
+package = true
 
 [tool.hatch.build.targets.wheel]
 packages = ["dvmeta"]

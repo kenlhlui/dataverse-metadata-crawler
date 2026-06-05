@@ -56,18 +56,27 @@ to launch the crawler directly in your web browser—no Git or Python installati
    API_KEY = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXX"
    ```
 
-5. Set up virtual environment (recommended)
-   ```sh
-   python3 -m venv .venv
-   source .venv/bin/activate     # For Unix/MacOS
-   # OR
-   .venv\Scripts\activate       # For Windows
-   ```
+5. Set up virtual environment and install the package dependencies
 
-6. Install dependencies
-   ```sh
-   pip install -e .
-   ```
+   1. Use `uv` for a more streamlined experience (recommended):
+      ```sh
+      uv sync
+      ```
+
+   2. Or the traditional way using `venv`:
+      ```sh
+      # For Unix/MacOS
+      python3 -m venv .venv
+      source .venv/bin/activate     
+      pip install -e .
+      ```
+
+      ```powershell
+      # For Windows (Powershell)
+      python -m venv .venv
+      .venv\Scripts\activate
+      pip install -e .
+      ```
 
 ## 🛠️Usage
 
@@ -76,10 +85,15 @@ to launch the crawler directly in your web browser—no Git or Python installati
 The CLI is structured as a main command with global options followed by a subcommand:
 
 ```sh
+# Run the CLI using uv (recommended)
+uv run dvmeta [OPTIONS] COMMAND
+
+# Or install it as a package and run the command directly within the virtual environment
+dvmeta [OPTIONS] COMMAND
+
+# Or use it as a module with python within the virtual environment
 python3 -m dvmeta.cli.app [OPTIONS] COMMAND
 
-# Or uv
-uv run python -m dvmeta.cli.app [OPTIONS] COMMAND
 ```
 
 **Subcommands:**
@@ -89,7 +103,7 @@ uv run python -m dvmeta.cli.app [OPTIONS] COMMAND
 | `search`             | Search for datasets in the collection.                              |
 | `crawl-metadata`     | Crawl and export dataset metadata to JSON.                          |
 | `crawl-permission`   | Crawl and export dataset permission metadata to JSON.               |
-| `export-spreadsheet` | Export crawled metadata to CSV.                                     |
+| `export-spreadsheet` | Export crawled metadata to CSV only (No JSON).                                     |
 | `run-all`            | Run all steps in sequence (search → crawl metadata → crawl permission → export spreadsheet). |
 
 **Required options:**
