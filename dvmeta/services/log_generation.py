@@ -36,6 +36,7 @@ def write_to_log(  # noqa:  PLR0913
     report = Template(read_template())
     rendered = report.render(
         config=config,
+        crawl_result=crawl_result,
         start_time_display=get_display_time(timestamps.start_time),
         end_time_display=get_display_time(timestamps.end_time),
         elapsed_time=get_elapsed_time(timestamps.start_time, timestamps.end_time),

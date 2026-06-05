@@ -14,3 +14,4 @@ class CrawlResult:
     failed_metadata_uris: dict = field(default_factory=dict)
     pid_dict_dd: dict = field(default_factory=dict)
     collections_tree_flatten: dict = field(default_factory=dict)
+    dv_dict: dict = field(default_factory=dict)

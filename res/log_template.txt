@@ -1,8 +1,8 @@
 --- Summary ---
 Repository base URL: {{ config.base_url }}
-Collection Name: {{ config.collection_name }}
-Collection Alias: {{ config.collection_alias }}
-Collection ID: {{ config.collection_id }}
+Collection Name: {{ crawl_result.dv_dict.data.name }}
+Collection Alias: {{ crawl_result.dv_dict.data.alias }}
+Collection ID: {{ crawl_result.dv_dict.data.id }}
 Dataset Version: {{ config.version }}
 
 Start time: {{ start_time_display }}

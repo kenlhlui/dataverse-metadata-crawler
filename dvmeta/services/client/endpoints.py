@@ -66,3 +66,17 @@ class Endpoints:
         """
         endpoint = f'/api/datasets/export?exporter={exporter}&persistentId={persistent_id}&version=:{version}'
         return urljoin(self.base_url, endpoint)
+
+    def dv_json(self, dataverse_id: str) -> str:
+        """The dataverse JSON representation endpoint.
+
+        Docs: https://borealisdata.ca/guides/en/latest/api/native-api.html#view-a-dataverse-collection
+
+        Args:
+            dataverse_id (str): The database ID or alias of a dataverse collection. Can also be speical value `root` for the root collection.
+
+        Returns:
+            dict: The dataverse JSON representation endpoint
+
+        """
+        return urljoin(self.base_url, f'/api/dataverses/{dataverse_id}')
