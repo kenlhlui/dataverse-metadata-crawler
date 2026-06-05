@@ -52,6 +52,7 @@ def merge_oaiore_to_meta_dict(meta_dict: dict, oaiore_metadata: dict) -> dict:
     for dataset_id, dataset_meta in meta_dict.items():
         dataset_pid = dataset_meta.get('data', {}).get('latestVersion', {}).get('datasetPersistentId')
         oaiore_meta = oaiore_metadata.get(dataset_pid)
+
         if oaiore_meta:
             path = get_path_from_oaiore(oaiore_meta)
             if path:

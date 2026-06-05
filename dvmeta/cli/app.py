@@ -19,7 +19,7 @@ from dvmeta.services.custom_logging import setup_logging
 from dvmeta.services.dir_manager import DirManager
 from dvmeta.services.dir_manager import ExportDir
 from dvmeta.services.exporter import ExportManager
-from dvmeta.services.log_generation import write_to_log
+from dvmeta.services.report_generation import write_to_report
 from dvmeta.services.spreadsheet import Spreadsheet
 from dvmeta.services.timestamp import Timestamps
 from dvmeta.services.timestamp import get_current_time
@@ -39,9 +39,8 @@ class CLIState:
     collections_tree: Any | None = None
     collection_data: Any | None = None
     crawl_result: CrawlResult | None = None
-    log: bool = True
+    report: bool = True
     permission: bool = False
-    metadata_source: str | None = None
     publication_status: str | None = None
 
     exporter: ExportManager | None = None
@@ -56,7 +55,7 @@ class CLIState:
 def main(
     ctx: typer.Context,
     auth: str = TyperOptions.auth,
-    log: bool = TyperOptions.log,
+    report: bool = TyperOptions.report,
     collection_alias: str = TyperOptions.collection_alias,
     version: str = TyperOptions.version,
     debug_log: bool = TyperOptions.debug_log,
@@ -80,15 +79,14 @@ def main(
     config.metadata_source = metadata_source
     config.semaphore_limit = semaphore_limit
 
-    auth_status = validate_connection(config)
-    config.api_key = None if not auth_status else config.api_key
+    state.auth_status = validate_connection(config)
+    config.api_key = None if not state.auth_status else config.api_key  # Remove the API Key if authentication failed
 
     state.config = config
-    state.auth_status = auth_status
-    state.log = log
-    state.metadata_source = config.metadata_source
+    state.report = report
     state.exporter = ExportManager()
     state.publication_status = publication_status
+    state.crawl_result = CrawlResult()
     ctx.obj = state
 
 
@@ -105,17 +103,17 @@ def search(ctx: typer.Context) -> None:
     """Search for datasets in the collection."""
     state = get_state(ctx)
 
+    assert state.config is not None
+    assert state.crawl_result is not None
+
     with spinner():
         state.crawler = MetaDataCrawler(state.config)
 
-        state.dataset_records = state.crawler.get_dataverse_ds_records(
-            metadata_source=state.metadata_source, publication_status=state.publication_status
+        state.crawl_result.dataset_records = state.crawler.get_dataverse_ds_records(
+            metadata_source=state.config.metadata_source, publication_status=state.publication_status
         )
 
-        state.dataset_ids = parse_search_response(state.dataset_records)
-
-        if state.crawl_result is None:
-            state.crawl_result = CrawlResult()
+        state.dataset_ids = parse_search_response(state.crawl_result.dataset_records)
 
         state.crawl_result.dv_dict = state.crawler.get_dataverse_collection_records()
 
@@ -129,16 +127,16 @@ def crawl_metadata(ctx: typer.Context) -> None:
     """Crawl dataset metadata."""
     state = get_state(ctx)
 
+    assert state.crawler is not None
+    assert state.config is not None
+
     if state.dataset_ids is None:
         search(ctx)
 
     with spinner():
-        if state.crawl_result is None:
-            state.crawl_result = CrawlResult()
-
         crawler = state.crawler
         dataset_ids = state.dataset_ids
-        pids = list(get_pids_from_search_response(state.crawl_result.meta_dict).values())
+        pids = list(get_pids_from_search_response(state.crawl_result.dataset_records).values())
 
         async def _fetch_all() -> tuple[dict, dict]:
             return await asyncio.gather(
@@ -154,9 +152,9 @@ def crawl_metadata(ctx: typer.Context) -> None:
         if not state.skip_export:
             state.exporter.export(state.crawl_result.meta_dict, export_type='ds_metadata')
 
-        if state.log:
+        if state.report:
             state.timestamps.end_time = get_current_time()
-            write_to_log(state.config, state.timestamps, state.crawl_result)
+            write_to_report(state.config, state.timestamps, state.crawl_result)
 
         logger.info(
             f'Dataset metadata crawl for collection "{state.config.collection_alias}" completed. Crawled {len(state.crawl_result.meta_dict)} datasets.'
@@ -176,11 +174,12 @@ def crawl_permission(ctx: typer.Context) -> None:
             msg = 'API Token authentication failed or not provided. Skipping permission crawl.'
             logger.warning(msg)
             return
-        assert state.crawler
-        assert state.dataset_ids
-        assert state.exporter
-        assert state.config
+        assert state.crawler is not None
+        assert state.dataset_ids is not None
+        assert state.exporter is not None
+        assert state.config is not None
         assert state.crawl_result is not None
+
         state.crawl_result.permission_dict = asyncio.run(state.crawler.get_dataset_permissions(state.dataset_ids))
 
         if not state.skip_export:
@@ -216,8 +215,8 @@ def run_all(ctx: typer.Context) -> None:
     """Run the full crawl process: search -> crawl metadata -> crawl permissions -> export spreadsheet. Export the metadata (with permissions if available) to JSON and spreadsheet."""  # noqa: E501, W505
     state = get_state(ctx)
     state.skip_export = True
-    log = state.log
-    state.log = False  # Defer log write until the full pipeline completes
+    report = state.report
+    state.report = False  # Defer report write until the full pipeline completes
 
     search(ctx)
     crawl_metadata(ctx)
@@ -233,11 +232,11 @@ def run_all(ctx: typer.Context) -> None:
     state.exporter.export(state.crawl_result.meta_dict, export_type='ds_metadata')
     export_spreadsheet(ctx)
 
-    if log:
+    if report:
         assert state.config is not None
         assert state.timestamps is not None
         state.timestamps.end_time = get_current_time()
-        write_to_log(state.config, state.timestamps, state.crawl_result)
+        write_to_report(state.config, state.timestamps, state.crawl_result)
 
 
 if __name__ == '__main__':

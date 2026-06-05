@@ -17,7 +17,7 @@ class TyperOptions:
         hide_input=True,
         envvar='API_KEY',
     )
-    log: bool = typer.Option(True, '--log/--no-log', '-l', help='Output log file')
+    report: bool = typer.Option(True, '--report/--no-report', '-r', help='Output summary report file of the crawl.')
     collection_alias: str = typer.Option(
         ...,
         '--collection_alias',

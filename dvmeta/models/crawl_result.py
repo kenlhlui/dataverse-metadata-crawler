@@ -9,6 +9,7 @@ class CrawlResult:
     """Collected data returned from the crawling pipeline."""
 
     meta_dict: dict = field(default_factory=dict)
+    dataset_records: list[dict] = field(default_factory=list)
     permission_dict: dict = field(default_factory=dict)
     export_data: list = field(default_factory=list)
     failed_metadata_uris: dict = field(default_factory=dict)
