@@ -51,8 +51,6 @@ class CLIState:
     dataset_records: Any | None = None
     dataset_ids: list[str] | None = None
 
-    permission_records: Any | None = None
-
 
 @app.callback()
 def main(
@@ -135,7 +133,7 @@ def crawl_metadata(ctx: typer.Context) -> None:
 
         crawler = state.crawler
         dataset_ids = state.dataset_ids
-        pids = list(get_pids_from_search_response(state.dataset_records).values())
+        pids = list(get_pids_from_search_response(state.crawl_result.meta_dict).values())
 
         async def _fetch_all() -> tuple[dict, dict]:
             return await asyncio.gather(
@@ -177,13 +175,14 @@ def crawl_permission(ctx: typer.Context) -> None:
         assert state.dataset_ids
         assert state.exporter
         assert state.config
-        state.permission_records = asyncio.run(state.crawler.get_dataset_permissions(state.dataset_ids))
+        assert state.crawl_result is not None
+        state.crawl_result.permission_dict = asyncio.run(state.crawler.get_dataset_permissions(state.dataset_ids))
 
         if not state.skip_export:
-            state.exporter.export(state.permission_records, export_type='permission')
+            state.exporter.export(state.crawl_result.permission_dict, export_type='permission')
 
         logger.info(
-            f'Permission metadata for collection "{state.config.collection_alias}" completed. Crawled {len(state.permission_records)} records.'  # noqa: E501
+            f'Permission metadata for collection "{state.config.collection_alias}" completed. Crawled {len(state.crawl_result.permission_dict)} records.'  # noqa: E501
         )
 
 
@@ -196,7 +195,7 @@ def export_spreadsheet(ctx: typer.Context) -> None:
         if state.crawl_result is None or state.crawl_result.meta_dict is None:
             crawl_metadata(ctx)
 
-        if state.permission and (state.permission_records is None):
+        if state.permission and (state.crawl_result.permission_dict is None):
             crawl_permission(ctx)
 
         assert state.crawl_result is not None
@@ -221,9 +220,9 @@ def run_all(ctx: typer.Context) -> None:
 
     assert state.crawl_result is not None
     assert state.exporter is not None
-    if state.permission_records:
+    if state.crawl_result.permission_dict:
         state.crawl_result.meta_dict = merge_permission_to_meta_dict(
-            state.crawl_result.meta_dict, state.permission_records
+            state.crawl_result.meta_dict, state.crawl_result.permission_dict
         )
 
     state.exporter.export(state.crawl_result.meta_dict, export_type='ds_metadata')

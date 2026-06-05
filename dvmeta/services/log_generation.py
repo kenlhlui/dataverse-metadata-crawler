@@ -14,6 +14,8 @@ from dvmeta.services.timestamp import get_display_time
 from dvmeta.services.timestamp import get_elapsed_time
 from dvmeta.services.timestamp import get_file_timestamp
 from dvmeta.services.utils import count_key
+from dvmeta.services.utils import get_collection_files_count
+from dvmeta.services.utils import get_collection_files_size
 
 
 def write_to_log(  # noqa:  PLR0913
@@ -37,16 +39,15 @@ def write_to_log(  # noqa:  PLR0913
         start_time_display=get_display_time(timestamps.start_time),
         end_time_display=get_display_time(timestamps.end_time),
         elapsed_time=get_elapsed_time(timestamps.start_time, timestamps.end_time),
-        meta_dict=count_key(crawl_result.meta_dict),
-        collections_tree_flatten=count_key(crawl_result.collections_tree_flatten),
+        ds_metadata_num=count_key(crawl_result.meta_dict),
         pid_dict_dd=count_key(crawl_result.pid_dict_dd),
-        failed_metadata_ids=count_key(crawl_result.failed_metadata_uris),
-        # file_num=count_files_size(crawl_result.meta_dict)[0],
-        # file_size=count_files_size(crawl_result.meta_dict)[1],
+        permission_record_num=count_key(crawl_result.permission_dict),
+        file_num=get_collection_files_count(crawl_result.meta_dict),
+        file_size=get_collection_files_size(crawl_result.meta_dict),
         json_file_checksum_dict=crawl_result.export_data,
     )
 
-    log_file_path = f'{DirManager().get_dir(ExportDir.LOG)}/log_{get_file_timestamp()}.txt'
+    log_file_path = f'{DirManager().get_dir(ExportDir.LOG)}/report_{get_file_timestamp()}.txt'
 
     with Path(log_file_path).open('w', encoding='utf-8') as file:
         file.write(rendered)

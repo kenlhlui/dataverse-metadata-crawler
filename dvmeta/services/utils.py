@@ -5,6 +5,7 @@ import os
 from hashlib import sha256
 from pathlib import Path
 
+import jmespath
 import orjson
 from dotenv import load_dotenv
 from loguru import logger
@@ -116,3 +117,67 @@ def load_env() -> Config:
     semaphore_limit = int(os.getenv('SEMAPHORE_LIMIT', 5))
 
     return Config(api_key=api_key, base_url=base_url, semaphore_limit=semaphore_limit)
+
+
+def get_data_files_size(dictionary: dict) -> int | str:
+    """Calculate the total size of data files in bytes from a dataset metadata dictionary.
+
+    Args:
+        dictionary (dict): A dictionary containing dataset metadata, expected to have a structure where the latest version's files can be accessed via 'data.latestVersion.files'.
+
+    Returns:
+        int: The total size of data files in bytes if the structure is correct and files are present.
+
+        str: 'Error' if the input is not a dictionary or if the expected structure is not found.
+    """  # noqa: E501, W505
+    latest_version = dictionary.get('data', {}).get('latestVersion', {})
+    if latest_version.get('files'):
+        data_files_size_list: list = jmespath.search('data.latestVersion.files[*].dataFile.filesize|[]', dictionary)
+        if data_files_size_list:
+            return sum(data_files_size_list)
+    else:
+        return 0
+    return 'Error'
+
+
+def get_collection_files_size(dictionary: dict) -> int | str:
+    """Calculate the total size of collection files in bytes from a dataset metadata dictionary.
+
+    Args:
+        dictionary (dict): A dictionary containing dataset metadata, expected to have a structure where the latest version's files can be accessed via '{dataset_id}.data.latestVersion.files'.
+    """  # noqa: E501, W505
+    total_size = 0
+
+    for _, dataset in dictionary.items():
+        ds_size = get_data_files_size(dataset)
+        total_size += ds_size if isinstance(ds_size, int) else 0
+    return total_size
+
+
+def get_data_files_count(dictionary: dict) -> int | str:
+    """Calculate the total number of data files from a dataset metadata dictionary.
+
+    Args:
+        dictionary (dict): A dictionary containing dataset metadata, expected to have a structure where the latest version's files can be accessed via 'data.latestVersion.files'.
+
+    Returns:
+        int | str: The total number of data files if the structure is correct and files are present, otherwise 'Error'.
+    """  # noqa: E501, W505
+    latest_version = dictionary.get('data', {}).get('latestVersion', {})
+    if 'files' in latest_version:
+        return len(latest_version['files'])
+    return 'Error'
+
+
+def get_collection_files_count(dictionary: dict) -> int | str:
+    """Calculate the total number of data files from a dataset metadata dictionary of a collection.
+
+    Args:
+        dictionary (dict): A dictionary containing dataset metadata, expected to have a structure where the latest version's files can be accessed via '{dataset_id}.data.latestVersion.files'.
+    """  # noqa: E501, W505
+    total_count = 0
+
+    for _, dataset in dictionary.items():
+        ds_count = get_data_files_count(dataset)
+        total_count += ds_count if isinstance(ds_count, int) else 0
+    return total_count

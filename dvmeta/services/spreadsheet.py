@@ -16,6 +16,8 @@ from dvmeta.services.dir_manager import ExportDir
 from dvmeta.services.timestamp import get_file_timestamp
 from dvmeta.services.utils import convert_size
 from dvmeta.services.utils import gen_checksum
+from dvmeta.services.utils import get_data_files_count
+from dvmeta.services.utils import get_data_files_size
 
 
 class Spreadsheet:
@@ -37,17 +39,6 @@ class Spreadsheet:
             else:
                 result[key] = value
         return result
-
-    @staticmethod
-    def _get_data_files_size(dictionary: dict) -> int | str:
-        latest_version = dictionary.get('data', {}).get('latestVersion', {})
-        if latest_version.get('files'):
-            data_files_size_list: list = jmespath.search('data.latestVersion.files[*].dataFile.filesize|[]', dictionary)
-            if data_files_size_list:
-                return sum(data_files_size_list)
-        else:
-            return 0
-        return 'Error'
 
     @staticmethod
     def _get_data_files_count(dictionary: dict) -> int | str:
@@ -191,7 +182,7 @@ class Spreadsheet:
             citation = CitationAccessor(dataset.latestVersion.metadataBlocks.citation)
 
             file_stats = self._get_datafile_meta_usage(dataset_meta)
-            file_size = self._get_data_files_size(dataset_meta)
+            file_size = get_data_files_size(dataset_meta)
             subject_list: list = citation.get('subject', []) or []
             path_info = dataset_meta.get('dataset_path', 'Unknown')
 
@@ -214,7 +205,7 @@ class Spreadsheet:
                 'ReleaseTime': dataset.latestVersion.releaseTime,
                 'CreateTime': dataset.latestVersion.createTime,
                 'Version': str(self._get_dataset_version(dataset_meta)),
-                'FileCount': self._get_data_files_count(dataset_meta),
+                'FileCount': get_data_files_count(dataset_meta),
                 'FileSize': file_size,
                 'FileSize_normalized': convert_size(file_size),
                 'License': (latest_version_data.get('license') or {}).get('name', ''),
