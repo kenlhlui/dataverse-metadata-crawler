@@ -130,19 +130,19 @@ python3 -m dvmeta.cli.app [OPTIONS] COMMAND
 ### Examples
 ```sh
 # Run all steps: crawl metadata and permissions for the latest version of collection 'demo'
-python3 -m dvmeta.cli.app -c demo -v latest run-all
+dvmeta -c demo -v latest run-all
 
 # Run all steps with spreadsheet output and an API token
-python3 -m dvmeta.cli.app -c demo -v latest -p -s -a xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx run-all
+dvmeta -c demo -v latest -p -s -a xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx run-all
 
 # Crawl metadata only for version 1.0 of collection 'demo'
-python3 -m dvmeta.cli.app -c demo -v 1.0 crawl-metadata
+dvmeta -c demo -v 1.0 crawl-metadata
 
 # Filter by publication status and metadata source
-python3 -m dvmeta.cli.app -c demo -v latest -ps Published -m harvested run-all
+dvmeta -c demo -v latest -ps Published -m Borealis run-all
 
 # Run with increased concurrency and debug logging
-python3 -m dvmeta.cli.app -c demo -v latest --semaphore-limit 10 --debug-log run-all
+dvmeta -c demo -v latest --semaphore-limit 10 --debug-log run-all
 ```
 
 ## 📂Output Structure
@@ -152,7 +152,7 @@ python3 -m dvmeta.cli.app -c demo -v latest --semaphore-limit 10 --debug-log run
 | `ds_metadata_yyyymmdd-HHMMSS.json`            | Datasets representation & data files metadata in JSON format. Always exported.                                 |
 | `permission_dict_yyyymmdd-HHMMSS.json`        | Permission metadata for all datasets. Exported when API authentication succeeds (`--auth` / `API_KEY`).        |
 | `ds_metadata_yyyymmdd-HHMMSS.csv`             | Datasets and their data files' metadata in CSV format. Always exported with `run-all`.                         |
-| `log_yyyymmdd-HHMMSS.txt`                     | Summary of the crawling work. Exported by default; disabled with `--no-log`.                                   |
+| `report_yyyymmdd-HHMMSS.txt`                     | Summary of the crawling work. Exported by default; disabled with `--no-report`.                                   |
 | `debug.log`                                   | Debug log output. Exported with `--debug-log` / `-debug`.                                                      |
 
 ```sh
@@ -163,7 +163,7 @@ exported_files/
 ├── csv_files/
 │   └── ds_metadata_yyyymmdd-HHMMSS.csv         # Always exported with run-all
 └── logs_files/
-    ├── log_yyyymmdd-HHMMSS.txt                 # Exported by default; use --no-log to disable
+    ├── report_yyyymmdd-HHMMSS.txt                 # Exported by default; use --no-report to disable
     └── debug.log                               # Only with --debug-log / -debug
 ```
 
