@@ -1,8 +1,17 @@
 """Module to manage the directories for exported files."""
 
+from enum import StrEnum
 from pathlib import Path
 
 from loguru import logger
+
+
+class ExportDir(StrEnum):
+    """Enum to represent the different types of export directories."""
+
+    JSON = 'json_files'
+    LOG = 'log_files'
+    CSV = 'csv_files'
 
 
 class DirManager:
@@ -28,26 +37,13 @@ class DirManager:
             logger.debug(f'Created directory: {path}')
         return path
 
-    def json_files_dir(self) -> Path:
-        """Create a new directory to store json files.
+    def get_dir(self, name: ExportDir) -> Path:
+        """Get the directory path based on the provided name. Crate the directory if it doesn't exist.
+
+        Args:
+            name (ExportDir): The name of the directory to retrieve.
 
         Returns:
-            Path: The path to the new directory.
+            Path: The path to the requested directory.
         """
-        return self._create_dir(Path(self.export_base_dir) / 'json_files')
-
-    def log_files_dir(self) -> Path:
-        """Create a new directory to store log files.
-
-        Returns:
-            Path: The path to the new directory.
-        """
-        return self._create_dir(Path(self.export_base_dir) / 'log_files')
-
-    def csv_files_dir(self) -> Path:
-        """Create a new directory to store csv files.
-
-        Returns:
-            Path: The path to the new directory.
-        """
-        return self._create_dir(Path(self.export_base_dir) / 'csv_files')
+        return self._create_dir(Path(self.export_base_dir) / name)

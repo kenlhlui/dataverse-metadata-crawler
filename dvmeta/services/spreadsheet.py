@@ -12,6 +12,7 @@ from dvmeta.models.csv_model import DatasetExportRow
 from dvmeta.models.models import CitationAccessor
 from dvmeta.models.models import DatasetData
 from dvmeta.services.dir_manager import DirManager
+from dvmeta.services.dir_manager import ExportDir
 from dvmeta.services.timestamp import get_file_timestamp
 from dvmeta.services.utils import convert_size
 from dvmeta.services.utils import gen_checksum
@@ -23,7 +24,7 @@ class Spreadsheet:
     def __init__(self, config: Config) -> None:
         """Initialize the class with the configuration settings."""
         self.config = config
-        self.csv_file_dir = DirManager().csv_files_dir()
+        self.csv_file_dir = DirManager().get_dir(ExportDir.CSV)
         self.spreadsheet_order_file_path = Path(DirManager().res_dir) / 'spreadsheet_order.csv'
 
     @staticmethod

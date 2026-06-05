@@ -8,6 +8,7 @@ from loguru import logger
 from dvmeta.models.config import Config
 from dvmeta.models.crawl_result import CrawlResult
 from dvmeta.services.dir_manager import DirManager
+from dvmeta.services.dir_manager import ExportDir
 from dvmeta.services.timestamp import Timestamps
 from dvmeta.services.timestamp import get_display_time
 from dvmeta.services.timestamp import get_elapsed_time
@@ -45,7 +46,7 @@ def write_to_log(  # noqa:  PLR0913
         json_file_checksum_dict=crawl_result.export_data,
     )
 
-    log_file_path = f'{DirManager().log_files_dir()}/log_{get_file_timestamp()}.txt'
+    log_file_path = f'{DirManager().get_dir(ExportDir.LOG)}/log_{get_file_timestamp()}.txt'
 
     with Path(log_file_path).open('w', encoding='utf-8') as file:
         file.write(rendered)

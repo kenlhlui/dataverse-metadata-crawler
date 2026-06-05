@@ -17,6 +17,7 @@ from dvmeta.models.config import Config
 from dvmeta.models.crawl_result import CrawlResult
 from dvmeta.services.custom_logging import setup_logging
 from dvmeta.services.dir_manager import DirManager
+from dvmeta.services.dir_manager import ExportDir
 from dvmeta.services.exporter import ExportManager
 from dvmeta.services.log_generation import write_to_log
 from dvmeta.services.spreadsheet import Spreadsheet
@@ -68,7 +69,7 @@ def main(
 ):
     """Step 1: load config and validate inputs. Runs before every subcommand."""
     setup_logging(
-        DirManager().log_files_dir() if debug_log else None, log_level=log_level
+        DirManager().get_dir(ExportDir.LOG) if debug_log else None, log_level=log_level
     )  # Reconfigure logging if debug_log is set, otherwise use default configuration
 
     state = CLIState()

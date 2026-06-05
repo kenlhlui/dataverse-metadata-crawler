@@ -11,6 +11,7 @@ from loguru import logger
 
 from dvmeta.models.config import Config
 from dvmeta.services.dir_manager import DirManager
+from dvmeta.services.dir_manager import ExportDir
 from dvmeta.services.timestamp import get_file_timestamp
 
 
@@ -89,7 +90,7 @@ def orjson_export(data_dict: dict, file_name: str) -> tuple:
     Returns:
         tuple(Path, str): A tuple containing the path to the created json file and its checksum.
     """
-    json_dir = DirManager().json_files_dir()
+    json_dir = DirManager().get_dir(ExportDir.JSON)
     json_file_path = Path(json_dir, f'{file_name}_{get_file_timestamp()}.json')
     if data_dict:
         with json_file_path.open('wb') as file:  # Open file in binary write mode
