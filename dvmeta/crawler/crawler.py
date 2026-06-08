@@ -24,7 +24,7 @@ class MetaDataCrawler:
     def __init__(self, config: Config) -> None:
         """Initialize the class with the configuration settings."""
         self.config = config
-        self.endpoints = Endpoints(config.base_url)
+        self.endpoints = Endpoints()
         self.client = HttpxClient(self.config)
 
     def get_dataverse_collection_records(self) -> dict:

@@ -1,16 +1,11 @@
 """The dataverse API endpoints used in the crawler."""
 
-from urllib.parse import urljoin
-
 
 class Endpoints:
     """Endpoints for the Dataverse API."""
 
-    def __init__(self, base_url: str) -> None:
-        """Initialize the Endpoints class with the base URL of the Dataverse instance."""
-        self.base_url = base_url
-
-    def search(self) -> str:
+    @staticmethod
+    def search() -> str:
         """The search endpoint.
 
         Docs: https://borealisdata.ca/guides/en/latest/api/search.html
@@ -18,9 +13,10 @@ class Endpoints:
         Returns:
             str: The search endpoint URL
         """
-        return urljoin(self.base_url, '/api/search')
+        return '/api/search'
 
-    def ds_json(self, dataset_id: str | int, draft: bool = False) -> str:
+    @staticmethod
+    def ds_json(dataset_id: str | int, draft: bool = False) -> str:
         """The dataset JSON representation endpoint.
 
         Docs: https://borealisdata.ca/guides/en/latest/api/native-api.html#get-json-representation-of-a-dataset
@@ -32,13 +28,14 @@ class Endpoints:
         Returns:
             str: The dataset JSON representation endpoint URL
         """
-        url = urljoin(self.base_url, f'/api/datasets/{dataset_id}')
+        url = f'/api/datasets/{dataset_id}'
 
         if draft:
             url += '/:draft'
         return url
 
-    def ds_permissions(self, dataset_id: str | int) -> str:
+    @staticmethod
+    def ds_permissions(dataset_id: str | int) -> str:
         """The dataset permissions endpoint.
 
         Docs: https://borealisdata.ca/guides/en/latest/api/native-api.html#list-role-assignments-in-a-dataset
@@ -49,9 +46,10 @@ class Endpoints:
         Returns:
             str: The dataset permissions endpoint URL
         """
-        return urljoin(self.base_url, f'/api/datasets/{dataset_id}/assignments')
+        return f'/api/datasets/{dataset_id}/assignments'
 
-    def ds_meta_exporters(self, persistent_id: str, version: str, exporter: str = 'dataverse_json') -> str:
+    @staticmethod
+    def ds_meta_exporters(persistent_id: str, version: str, exporter: str = 'dataverse_json') -> str:
         """The dataset metadata exporters endpoint.
 
         Docs: https://borealisdata.ca/guides/en/latest/api/native-api.html#export-metadata-of-a-dataset-in-various-formats
@@ -65,9 +63,10 @@ class Endpoints:
             str: The dataset metadata exporters endpoint URL
         """
         endpoint = f'/api/datasets/export?exporter={exporter}&persistentId={persistent_id}&version=:{version}'
-        return urljoin(self.base_url, endpoint)
+        return endpoint
 
-    def dv_json(self, dataverse_id: str) -> str:
+    @staticmethod
+    def dv_json(dataverse_id: str) -> str:
         """The dataverse JSON representation endpoint.
 
         Docs: https://borealisdata.ca/guides/en/latest/api/native-api.html#view-a-dataverse-collection
@@ -76,7 +75,29 @@ class Endpoints:
             dataverse_id (str): The database ID or alias of a dataverse collection. Can also be speical value `root` for the root collection.
 
         Returns:
-            dict: The dataverse JSON representation endpoint
+            str: The dataverse JSON representation endpoint
 
         """
-        return urljoin(self.base_url, f'/api/dataverses/{dataverse_id}')
+        return f'/api/dataverses/{dataverse_id}'
+
+    @staticmethod
+    def user_info() -> str:
+        """The user info endpoint.
+
+        Docs: https://borealisdata.ca/guides/en/latest/api/native-api.html#get-user-information-in-json-format
+
+        Returns:
+            str: The user info endpoint URL
+        """
+        return 'api/users/:me'
+
+    @staticmethod
+    def version_info() -> str:
+        """The version info endpoint.
+
+        Docs: https://borealisdata.ca/guides/en/latest/api/native-api.html#show-dataverse-software-version-and-build-number
+
+        Returns:
+            str: The version info endpoint URL
+        """
+        return 'api/info/version'
