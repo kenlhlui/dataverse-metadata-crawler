@@ -24,12 +24,11 @@ class MetaDataCrawler:
     def __init__(self, config: Config) -> None:
         """Initialize the class with the configuration settings."""
         self.config = config
-        self.endpoints = Endpoints()
         self.client = HttpxClient(self.config)
 
     def get_dataverse_collection_records(self) -> dict:
         """Get the collection metadata of the Dataverse collection."""
-        url = self.endpoints.dv_json(self.config.collection_alias)
+        url = Endpoints.dv_json(self.config.collection_alias)
         response = self.client.sync_get(url)
 
         if response is None:
@@ -51,7 +50,7 @@ class MetaDataCrawler:
         Returns:
             dict: A dictionary containing the search results
         """  # noqa: W505, E501
-        search_url = self.endpoints.search()
+        search_url = Endpoints.search()
 
         base_search_params.per_page = 1
         base_search_params.start = 0
@@ -74,7 +73,7 @@ class MetaDataCrawler:
         Returns:
             list: A list of dataset metadata dictionaries
         """  # noqa: W505, E501
-        search_url = self.endpoints.search()
+        search_url = Endpoints.search()
 
         search_params.per_page = 1000
 
@@ -100,7 +99,7 @@ class MetaDataCrawler:
         Returns:
             dict: A dictionary mapping dataset IDs to their metadata
         """
-        url_list = [self.endpoints.ds_json(dataset_id, draft=draft) for dataset_id in dataset_ids]
+        url_list = [Endpoints.ds_json(dataset_id, draft=draft) for dataset_id in dataset_ids]
 
         response = await self.client.async_get(url_list)
 
@@ -120,8 +119,7 @@ class MetaDataCrawler:
             version (str): The version of the dataset
         """  # noqa: W505, E501
         url_list = [
-            self.endpoints.ds_meta_exporters(persistent_id=str(pid), version=version, exporter='OAI_ORE')
-            for pid in pids
+            Endpoints.ds_meta_exporters(persistent_id=str(pid), version=version, exporter='OAI_ORE') for pid in pids
         ]
 
         response = await self.client.async_get(url_list)
@@ -137,7 +135,7 @@ class MetaDataCrawler:
         Returns:
             dict: A dictionary mapping dataset IDs to their permission metadata
         """
-        url_list = [self.endpoints.ds_permissions(dataset_id) for dataset_id in dataset_ids]
+        url_list = [Endpoints.ds_permissions(dataset_id) for dataset_id in dataset_ids]
 
         response = await self.client.async_get(url_list)
 

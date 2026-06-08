@@ -11,9 +11,9 @@ class Endpoints:
         Docs: https://borealisdata.ca/guides/en/latest/api/search.html
 
         Returns:
-            str: The search endpoint URL
+            str: The search endpoint
         """
-        return '/api/search'
+        return 'api/search'
 
     @staticmethod
     def ds_json(dataset_id: str | int, draft: bool = False) -> str:
@@ -26,9 +26,9 @@ class Endpoints:
             draft (bool): Whether to fetch the draft version
 
         Returns:
-            str: The dataset JSON representation endpoint URL
+            str: The dataset JSON representation endpoint
         """
-        url = f'/api/datasets/{dataset_id}'
+        url = f'api/datasets/{dataset_id}'
 
         if draft:
             url += '/:draft'
@@ -44,9 +44,9 @@ class Endpoints:
             dataset_id (str | int): The database ID of the dataset
 
         Returns:
-            str: The dataset permissions endpoint URL
+            str: The dataset permissions endpoint
         """
-        return f'/api/datasets/{dataset_id}/assignments'
+        return f'api/datasets/{dataset_id}/assignments'
 
     @staticmethod
     def ds_meta_exporters(persistent_id: str, version: str, exporter: str = 'dataverse_json') -> str:
@@ -60,9 +60,9 @@ class Endpoints:
             exporter (str): The metadata exporter format (e.g., 'dataverse_json', 'OAI_ORE')
 
         Returns:
-            str: The dataset metadata exporters endpoint URL
+            str: The dataset metadata exporters endpoint
         """
-        endpoint = f'/api/datasets/export?exporter={exporter}&persistentId={persistent_id}&version=:{version}'
+        endpoint = f'api/datasets/export?exporter={exporter}&persistentId={persistent_id}&version=:{version}'
         return endpoint
 
     @staticmethod
@@ -78,7 +78,7 @@ class Endpoints:
             str: The dataverse JSON representation endpoint
 
         """
-        return f'/api/dataverses/{dataverse_id}'
+        return f'api/dataverses/{dataverse_id}'
 
     @staticmethod
     def user_info() -> str:
@@ -87,7 +87,7 @@ class Endpoints:
         Docs: https://borealisdata.ca/guides/en/latest/api/native-api.html#get-user-information-in-json-format
 
         Returns:
-            str: The user info endpoint URL
+            str: The user info endpoint
         """
         return 'api/users/:me'
 
@@ -98,6 +98,6 @@ class Endpoints:
         Docs: https://borealisdata.ca/guides/en/latest/api/native-api.html#show-dataverse-software-version-and-build-number
 
         Returns:
-            str: The version info endpoint URL
+            str: The version info endpoint
         """
         return 'api/info/version'
