@@ -158,10 +158,10 @@ dvmeta -c demo -v latest --semaphore-limit 10 --debug-log run-all
 ```sh
 exported_files/
 ├── json_files/
-│   ├── ds_metadata_yyyymmdd-HHMMSS.json        # Always exported
-│   └── permission_dict_yyyymmdd-HHMMSS.json    # Only when API authentication succeeds
+│   ├── ds_metadata_yyyymmdd-HHMMSS.json        
+│   └── permission_dict_yyyymmdd-HHMMSS.json    
 ├── csv_files/
-│   └── ds_metadata_yyyymmdd-HHMMSS.csv         # Always exported with run-all
+│   └── ds_metadata_yyyymmdd-HHMMSS.csv         
 └── logs_files/
     ├── report_yyyymmdd-HHMMSS.txt                 # Exported by default; use --no-report to disable
     └── debug.log                               # Only with --debug-log / -debug
@@ -194,12 +194,12 @@ If you use this software in your work, please cite it using the following metada
 
 APA:
 ```
-Lui, L. H. (2025). Dataverse Metadata Crawler (Version 0.1.7) [Computer software]. https://github.com/scholarsportal/dataverse-metadata-crawler
+Lui, L. H. (2026). Dataverse Metadata Crawler (Version 0.1.7) [Computer software]. https://github.com/scholarsportal/dataverse-metadata-crawler
 ```
 
 BibTeX:
 ```
-@software{Lui_Dataverse_Metadata_Crawler_2025,
+@software{Lui_Dataverse_Metadata_Crawler_2026,
   author = {Lui, Lok Hei},
   month = {June},
   title = {Dataverse Metadata Crawler},

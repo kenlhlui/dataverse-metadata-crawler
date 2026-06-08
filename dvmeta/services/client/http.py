@@ -1,20 +1,22 @@
 """HTTP client class for making GET requests."""
 
 import asyncio
-from urllib.parse import urljoin
 
 import httpx2
 
 from dvmeta.models.config import Config
+from dvmeta.services.client.endpoints import Endpoints
 
 
 class HttpxClient:
     """HTTP client class for making GET requests."""
 
     def __init__(self, config: Config) -> None:
+        """Initialize the class with the configuration settings."""
         self.config = config
         self.httpx_success_status = 200
         self.semaphore_num = config.semaphore_limit
+        self.base_url = config.base_url
 
         self.header = (
             {'Accept': 'application/json'}
@@ -51,15 +53,9 @@ class HttpxClient:
         Returns:
             bool: True if the API key is valid, False otherwise
         """
-        base_url: str = self.config.base_url
-        api_key: str = self.config.api_key or ''
-        auth_headers: dict = {'X-Dataverse-key': api_key}
-        api_endpoint: str = '/api/users/:me'
-        auth_url = urljoin(base_url, api_endpoint)
-
         try:
-            with httpx2.Client(timeout=None, headers=self.header) as client:
-                response = client.get(auth_url, headers=auth_headers)
+            with httpx2.Client(timeout=None, headers=self.header, base_url=self.base_url) as client:
+                response = client.get(Endpoints.user_info(), headers=self.header)
                 return response.status_code == self.httpx_success_status
         except (httpx2.HTTPStatusError, httpx2.RequestError):
             return False
@@ -70,12 +66,9 @@ class HttpxClient:
         Returns:
             bool: True if the connection is successful, False otherwise
         """
-        base_url: str = self.config.base_url
-        public_url: str = urljoin(base_url, '/api/info/version')
-
         try:
-            with httpx2.Client(timeout=None, headers=self.header) as client:
-                response = client.get(public_url)
+            with httpx2.Client(timeout=None, headers=self.header, base_url=self.base_url) as client:
+                response = client.get(Endpoints.version_info())
                 return response.status_code == self.httpx_success_status
         except (httpx2.HTTPStatusError, httpx2.RequestError):
             return False
@@ -92,7 +85,7 @@ class HttpxClient:
         """
         try:
             # Create a new client for each request to avoid the "closed client" issue
-            with httpx2.Client(timeout=None, headers=self.header) as client:
+            with httpx2.Client(timeout=None, headers=self.header, base_url=self.base_url) as client:
                 response = client.get(url, params=params)
                 return response if response.status_code == self.httpx_success_status else None
         except (httpx2.HTTPStatusError, httpx2.RequestError):
@@ -115,7 +108,7 @@ class HttpxClient:
             list: List of httpx2.Response objects
         """
         semaphore = asyncio.Semaphore(self.semaphore_num)
-        async with httpx2.AsyncClient(timeout=None, headers=self.header) as client:
+        async with httpx2.AsyncClient(timeout=None, headers=self.header, base_url=self.base_url) as client:
             built = [
                 client.build_request(r.method, str(r.url))
                 if isinstance(r, httpx2.Request)
