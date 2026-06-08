@@ -52,7 +52,7 @@ def write_to_report(  # noqa:  PLR0913
     timestamps: Timestamps,
     crawl_result: CrawlResult,
 ) -> None:
-    """Write the crawl log to a file.
+    """Write the crawl report to a file.
 
     Args:
         config (dict): Configuration dictionary
@@ -82,11 +82,11 @@ def write_to_report(  # noqa:  PLR0913
     with Path(log_file_path).open('w', encoding='utf-8') as file:
         file.write(rendered)
 
-    return logger.info(f'The crawl log is saved at: {log_file_path}')
+    return logger.info(f'The crawl report is saved at: {log_file_path}')
 
 
 def read_template() -> str:
-    """Read the log template file from res directory.
+    """Read the report template file from res directory.
 
     Returns:
         str: Content of the template file as string
