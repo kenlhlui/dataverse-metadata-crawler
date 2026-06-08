@@ -10,11 +10,15 @@ from dvmeta.cli.utils import spinner
 from dvmeta.cli.validation import validate_connection
 from dvmeta.crawler.crawler import MetaDataCrawler
 from dvmeta.crawler.utils import get_pids_from_search_response
+from dvmeta.crawler.utils import get_start_parameters
+from dvmeta.crawler.utils import get_total_count_from_response
 from dvmeta.crawler.utils import merge_oaiore_to_meta_dict
 from dvmeta.crawler.utils import merge_permission_to_meta_dict
 from dvmeta.crawler.utils import parse_search_response
 from dvmeta.models.config import Config
 from dvmeta.models.crawl_result import CrawlResult
+from dvmeta.models.search_params import DataverseSearchParams
+from dvmeta.models.search_params import ItemType
 from dvmeta.services.custom_logging import setup_logging
 from dvmeta.services.dir_manager import DirManager
 from dvmeta.services.dir_manager import ExportDir
@@ -106,11 +110,33 @@ def search(ctx: typer.Context) -> None:
     assert state.config is not None
     assert state.crawl_result is not None
 
+    base_search_params = DataverseSearchParams(
+        q='*',
+        type=[ItemType.DATASET],
+        subtree=state.config.collection_alias,
+        fq=[
+            f'metadataSource:"{state.config.metadata_source}"' if state.config.metadata_source else None,
+            f'publicationStatus:"{state.publication_status}"' if state.publication_status else None,
+        ],
+        show_collections=True,
+        query_entities=False,
+        show_entity_ids=True,
+    )
+
     with spinner():
         state.crawler = MetaDataCrawler(state.config)
 
-        state.crawl_result.dataset_records = state.crawler.get_dataverse_ds_records(
-            metadata_source=state.config.metadata_source, publication_status=state.publication_status
+        # First get the total count of the search result
+        total_count_rsp = state.crawler.get_search_result(
+            base_search_params=base_search_params,
+        )
+
+        total_count = get_total_count_from_response(total_count_rsp)
+
+        start_parameters = get_start_parameters(total_count, per_page=1000)
+
+        state.crawl_result.dataset_records = asyncio.run(
+            state.crawler.get_dataverse_ds_records_async(start_parameters, search_params=base_search_params)
         )
 
         state.dataset_ids = parse_search_response(state.crawl_result.dataset_records)

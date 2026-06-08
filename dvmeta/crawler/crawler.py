@@ -10,7 +10,10 @@ Flow:
 
 """
 
+import httpx2
+
 from dvmeta.models.config import Config
+from dvmeta.models.search_params import DataverseSearchParams
 from dvmeta.services.client.endpoints import Endpoints
 from dvmeta.services.client.http import HttpxClient
 
@@ -34,58 +37,58 @@ class MetaDataCrawler:
 
         return response.json()
 
-    def get_dataverse_ds_records(
-        self, metadata_source: str | None = None, publication_status: str | None = None
-    ) -> list:
+    def get_search_result(
+        self,
+        base_search_params: DataverseSearchParams,
+    ) -> dict:
         """Get the dataset records in the Dataverse collection (recursively, including all the children).
 
         Uses the Search API.
 
         Args:
-            metadata_source (str | None): Optional filter for metadata source (e.g., 'Borealis', 'Dataverse'). This is to exclude the harvested datasets. (docs: https://github.com/IQSS/dataverse/issues/9515). If no value is provided, it will fetch all datasets regardless of the metadata source.
-            publication_status (str | None): Optional filter for publication status (e.g., 'Published', 'Draft', 'Unpublished', 'Deaccessioned'). If no value is provided, it will fetch all datasets regardless of the publication status. See the 'facets' section in the Search API return for the possible values.
+            base_search_params (DataverseSearchParams | None): The base search parameters for the API call.
+
+        Returns:
+            dict: A dictionary containing the search results
+        """  # noqa: W505, E501
+        search_url = self.endpoints.search()
+
+        base_search_params.per_page = 1
+        base_search_params.start = 0
+
+        response = self.client.sync_get(search_url, params=base_search_params.to_params())
+
+        return response.json() if response and response.json() is not None else {}
+
+    async def get_dataverse_ds_records_async(
+        self, start_parameters: tuple[int], search_params: DataverseSearchParams
+    ) -> list:
+        """Asynchronously get the dataset records in the Dataverse collection (recursively, including all the children).
+
+        Uses the Search API.
+
+        Args:
+            start_parameters (tuple[int]): A tuple of starting indices for the search results.
+            search_params (DataverseSearchParams): The search parameters for the API call.
 
         Returns:
             list: A list of dataset metadata dictionaries
         """  # noqa: W505, E501
         search_url = self.endpoints.search()
-        per_page = 1000
-        start = 0
 
-        ds_records = []
+        search_params.per_page = 1000
 
-        while True:
-            params = [
-                ('q', '*'),
-                ('per_page', per_page),
-                ('type', 'dataset'),
-                ('start', start),
-                ('subtree', self.config.collection_alias),
-                ('show_collections', True),
-                ('query_entities', False),
-                ('show_entity_ids', True),
-            ]
+        url_list = [
+            httpx2.Request(
+                'GET',
+                search_url,
+                params=search_params.model_copy(update={'start': start}).to_params(),
+            )
+            for start in start_parameters
+        ]
 
-            if metadata_source:
-                params.append(('fq', f'metadataSource:"{metadata_source}"'))
-
-            if publication_status:
-                params.append(('fq', f'publicationStatus:"{publication_status}"'))
-
-            response = self.client.sync_get(search_url, params=params)
-
-            if response is None:
-                break
-
-            data = response.json()
-            items = data.get('data', {}).get('items', [])
-            if not items:
-                break
-
-            ds_records.extend(items)
-            start += per_page
-
-        return ds_records
+        responses = await self.client.async_get(url_list)
+        return [item for response in responses for item in response.json().get('data', {}).get('items', [])]
 
     async def get_dataset_metadata(self, dataset_ids: list, draft: bool = False) -> dict:
         """Get the metadata of a dataset using the dataset Native API endpoint.

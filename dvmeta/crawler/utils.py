@@ -24,7 +24,9 @@ def parse_search_response(
         logger.warning('No items found in the search response.')
         return []
 
-    return list(dict.fromkeys([item.get('entity_id') for item in items]))  # remove duplicates while preserving order
+    return list(
+        dict.fromkeys([item.get('entity_id') for item in items])
+    )  # remove duplicates while preserving order. One dataset might have multiple versions, like DRAFT and PUBLISHED.
 
 
 def get_pids_from_search_response(items: list[dict]) -> dict:
@@ -119,3 +121,39 @@ def merge_permission_to_meta_dict(meta_dict: dict, permission_metadata: dict) ->
             logger.debug(f'No permission metadata found for dataset ID {dataset_id}.')
 
     return meta_dict
+
+
+def get_total_count_from_response(response: dict) -> int:
+    """Extract the total count of items from the search response.
+
+    Args:
+        response (dict): The search response dictionary.
+
+    Returns:
+        int: The total count of items in the search response.
+    """
+    return response.get('data', {}).get('total_count', 0)
+
+
+def get_start_parameters(total_count: int, per_page: int) -> tuple[int]:
+    """Calculate the start parameters for pagination.
+
+    Args:
+        total_count (int): The total number of items yield from the search response.
+        per_page (int): The number of items per page.
+
+    Returns:
+        tuple[int]: A tuple of `start` parameters for to use in the pagination of the API requests.
+    """
+    if per_page <= 0:
+        msg = 'per_page must be a positive integer.'
+        raise ValueError(msg)
+
+    if per_page >= total_count:
+        return (0,)
+
+    total_count -= 1  # The start parameter is 0-indexed
+
+    indexes = list(range(0, total_count, per_page))
+
+    return tuple(indexes)  # ty:ignore[invalid-return-type]
