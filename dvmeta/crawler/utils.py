@@ -24,7 +24,9 @@ def parse_search_response(
         logger.warning('No items found in the search response.')
         return []
 
-    return list(dict.fromkeys([item.get('entity_id') for item in items]))  # remove duplicates while preserving order
+    return list(
+        dict.fromkeys([item.get('entity_id') for item in items])
+    )  # remove duplicates while preserving order. One dataset might have multiple versions, like DRAFT and PUBLISHED.
 
 
 def get_pids_from_search_response(items: list[dict]) -> dict:
