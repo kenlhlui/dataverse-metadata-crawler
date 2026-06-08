@@ -10,6 +10,8 @@ from dvmeta.cli.utils import spinner
 from dvmeta.cli.validation import validate_connection
 from dvmeta.crawler.crawler import MetaDataCrawler
 from dvmeta.crawler.utils import get_pids_from_search_response
+from dvmeta.crawler.utils import get_start_parameters
+from dvmeta.crawler.utils import get_total_count_from_response
 from dvmeta.crawler.utils import merge_oaiore_to_meta_dict
 from dvmeta.crawler.utils import merge_permission_to_meta_dict
 from dvmeta.crawler.utils import parse_search_response
@@ -109,11 +111,27 @@ def search(ctx: typer.Context) -> None:
     with spinner():
         state.crawler = MetaDataCrawler(state.config)
 
-        state.crawl_result.dataset_records = state.crawler.get_dataverse_ds_records(
-            metadata_source=state.config.metadata_source, publication_status=state.publication_status
+        # First get the total count of the search result
+        total_count_rsp = state.crawler.get_search_result(
+            metadata_source=state.config.metadata_source,
+            publication_status=state.publication_status,
+            per_page=1,
+            start=0,
         )
 
+        # logger.debug(f'Search API response: {total_count_rsp}')
+
+        total_count = get_total_count_from_response(total_count_rsp)
+
+        start_parameters = get_start_parameters(total_count, per_page=1000)
+        state.crawl_result.dataset_records = asyncio.run(state.crawler.get_dataverse_ds_records_async(start_parameters))
+
+        logger.debug(f'Total length of dataset records: {len(state.crawl_result.dataset_records)}')
+
         state.dataset_ids = parse_search_response(state.crawl_result.dataset_records)
+
+        logger.debug(f'Length of dataset IDs: {len(state.dataset_ids)}')
+        logger.debug(f'Dataset IDs extracted from search response: {state.dataset_ids}')
 
         state.crawl_result.dv_dict = state.crawler.get_dataverse_collection_records()
 

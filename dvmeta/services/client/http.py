@@ -23,12 +23,12 @@ class HttpxClient:
         )
 
     async def _async_semaphore_client(
-        self, url: str, semaphore: asyncio.Semaphore, client: httpx2.AsyncClient
-    ) -> httpx2.Response | list[str]:
+        self, request: httpx2.Request, semaphore: asyncio.Semaphore, client: httpx2.AsyncClient
+    ) -> httpx2.Response:
         """Asynchronous HTTP client with semaphore.
 
         Args:
-            url (str): URL to GET
+            request (httpx2.Request): Pre-built request object
             semaphore (asyncio.Semaphore): Semaphore bound to the current event loop
             client (httpx2.AsyncClient): Async client bound to the current event loop
 
@@ -37,17 +37,12 @@ class HttpxClient:
         """
         async with semaphore:
             try:
-                response = await client.get(url)
-                if response.status_code != self.httpx_success_status:
-                    # print(f'HTTP request Error for {url}: {response.status_code}')
-                    return response
-                return response
+                return await client.send(request)
             except (httpx2.HTTPStatusError, httpx2.RequestError):
-                # print(f'HTTP request Error for {url}: {exc}')
                 return httpx2.Response(
-                    status_code=500,  # Server error as a fallback
+                    status_code=500,
                     text='Error occurred during request',
-                    request=httpx2.Request('GET', url),
+                    request=request,
                 )
 
     def authenticate_api_key(self) -> bool:
@@ -90,7 +85,7 @@ class HttpxClient:
 
         Args:
             url (str): URL to GET
-            parameters (dict | None): Additional parameters for the GET request
+            params (dict | None): Additional parameters for the GET request
 
         Returns:
             httpx2.Response | None: Response object or None if error
@@ -114,13 +109,18 @@ class HttpxClient:
         """Asynchronous GET request.
 
         Args:
-            url_list (list): List of URLs to GET
-            semaphore_num (int): Number of concurrent requests allowed
+            url_list (list): List of URLs (str) or pre-built httpx2.Request objects to GET
 
         Returns:
             list: List of httpx2.Response objects
         """
-        semaphore = asyncio.Semaphore(self.semaphore_num)  # TODO: make this configurable
+        semaphore = asyncio.Semaphore(self.semaphore_num)
         async with httpx2.AsyncClient(timeout=None, headers=self.header) as client:
-            tasks = [self._async_semaphore_client(url, semaphore, client) for url in url_list]
+            built = [
+                client.build_request(r.method, str(r.url))
+                if isinstance(r, httpx2.Request)
+                else client.build_request('GET', r)
+                for r in url_list
+            ]
+            tasks = [self._async_semaphore_client(request, semaphore, client) for request in built]
             return await asyncio.gather(*tasks)
