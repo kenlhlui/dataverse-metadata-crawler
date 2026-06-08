@@ -124,7 +124,11 @@ class MetaDataCrawler:
 
         response = await self.client.async_get(url_list)
 
-        return {pid: res.json() for pid, res in zip(pids, response, strict=False) if res is not None}
+        return {
+            pid: res.json()
+            for pid, res in zip(pids, response, strict=False)
+            if res is not None and res.status_code == 200 and res.content
+        }
 
     async def get_dataset_permissions(self, dataset_ids: list) -> dict:
         """Get the permission metadata of a dataset using the dataset permissions API endpoint.
