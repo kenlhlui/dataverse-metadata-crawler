@@ -49,21 +49,24 @@ class Endpoints:
         return f'api/datasets/{dataset_id}/assignments'
 
     @staticmethod
-    def ds_meta_exporters(persistent_id: str, version: str, exporter: str = 'dataverse_json') -> str:
+    def ds_meta_exporters(persistent_id: str, exporter: str = 'dataverse_json', version: str | None = None) -> str:
         """The dataset metadata exporters endpoint.
 
         Docs: https://borealisdata.ca/guides/en/latest/api/native-api.html#export-metadata-of-a-dataset-in-various-formats
 
+        Note: This is mainly for getting the path of the dataset from OAI_ORE metadata. It works the best with No version provided.
+
         Args:
             persistent_id (str): The persistent ID of the dataset
-            version (str): The version of the dataset
+            version (str | None): The version of the dataset
             exporter (str): The metadata exporter format (e.g., 'dataverse_json', 'OAI_ORE')
 
         Returns:
             str: The dataset metadata exporters endpoint
-        """
-        endpoint = f'api/datasets/export?exporter={exporter}&persistentId={persistent_id}&version=:{version}'
-        return endpoint
+        """  # noqa: E501, W505
+        if version is not None and isinstance(version, str):
+            return f'api/datasets/export?exporter={exporter}&persistentId={persistent_id}&version={version}'
+        return f'api/datasets/export?exporter={exporter}&persistentId={persistent_id}'
 
     @staticmethod
     def dv_json(dataverse_id: str) -> str:

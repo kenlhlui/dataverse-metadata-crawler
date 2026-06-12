@@ -55,12 +55,10 @@ def merge_oaiore_to_meta_dict(meta_dict: dict, oaiore_metadata: dict) -> dict:
         dataset_pid = dataset_meta.get('data', {}).get('latestVersion', {}).get('datasetPersistentId')
         oaiore_meta = oaiore_metadata.get(dataset_pid)
 
+        dataset_meta['dataset_path'] = None
+
         if oaiore_meta:
-            path = get_path_from_oaiore(oaiore_meta)
-            if path:
-                dataset_meta['dataset_path'] = path
-            else:
-                logger.debug(f'No valid path found in OAI-ORE metadata for dataset ID {dataset_id}.')
+            dataset_meta['dataset_path'] = get_path_from_oaiore(oaiore_meta)
         else:
             logger.debug(f'No OAI-ORE metadata found for dataset ID {dataset_id}.')
 
