@@ -118,13 +118,11 @@ class MetaDataCrawler:
             pids (list): A list of dataset (entity) IDs
             version (str): The version of the dataset
         """  # noqa: W505, E501
-        url_list = [
-            Endpoints.ds_meta_exporters(persistent_id=str(pid), version=version, exporter='OAI_ORE') for pid in pids
-        ]
+        url_list = [Endpoints.ds_meta_exporters(persistent_id=str(pid), exporter='OAI_ORE') for pid in pids]
 
         response = await self.client.async_get(url_list)
 
-        return {pid: res.json() for pid, res in zip(pids, response, strict=False) if res is not None}
+        return {pid: res.json() for pid, res in zip(pids, response, strict=False) if res is not None and res.content}
 
     async def get_dataset_permissions(self, dataset_ids: list) -> dict:
         """Get the permission metadata of a dataset using the dataset permissions API endpoint.
