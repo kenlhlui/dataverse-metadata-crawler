@@ -78,12 +78,14 @@ def main(
     config = Config()
     config.collection_alias = collection_alias
     config.version = version
-    config.api_key = auth if auth else config.api_key
+    config.api_token = auth if auth else config.api_token
     config.metadata_source = metadata_source
     config.semaphore_limit = semaphore_limit
 
     state.auth_status = validate_connection(config)
-    config.api_key = None if not state.auth_status else config.api_key  # Remove the API Key if authentication failed
+    config.api_token = (
+        None if not state.auth_status else config.api_token
+    )  # Remove the API token if authentication failed
 
     state.config = config
     state.report = report

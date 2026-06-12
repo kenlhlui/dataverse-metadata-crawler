@@ -39,7 +39,7 @@ def validate_connection(config: Config) -> bool:
         config (Config): The config.
 
     Returns:
-        bool: True if the API key is valid, False otherwise.
+        bool: True if the API token is valid, False otherwise.
 
     Raises:
         BadParameter: If connection to the repository fails.
@@ -47,8 +47,8 @@ def validate_connection(config: Config) -> bool:
     logger.info('Checking the connection to the Dataverse repository...')
     client = HttpxClient(config)
 
-    if config.api_key:
-        result = client.authenticate_api_key()
+    if config.api_token:
+        result = client.authenticate_api_token()
         if result is True:
             msg = f'Connection to the dataverse repository {config.base_url} with API Token is successful.'
             logger.info(msg)

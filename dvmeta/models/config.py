@@ -11,21 +11,21 @@ class Config(BaseSettings):
 
     model_config = SettingsConfigDict(env_file='.env')
 
-    api_key: str | None = Field(
+    api_token: str | None = Field(
         None,
         validation_alias=AliasChoices(
             'API_TOKEN',
-            'API_KEY',
+            'API_KEY',  # Keep for backward compatibility.
         ),
     )
     base_url: str | None = Field(
         'https://borealisdata.ca/',
     )
-    version: str = ''
+    version: str = Field(
+        default='latest',
+    )
     collection_alias: str = ''
     collection_id: int | str | None = None
     collection_name: str | None = None
     metadata_source: str | None = None
-    semaphore_limit: int = (
-        5  # Default number of concurrent requests for async operations, can be overridden by method parameters
-    )
+    semaphore_limit: int = 5

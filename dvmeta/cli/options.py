@@ -15,7 +15,7 @@ class TyperOptions:
         '-a',
         help='Authentication token to access the dataverse repository',
         hide_input=True,
-        envvar='API_KEY',
+        envvar='API_TOKEN',
     )
     report: bool = typer.Option(True, '--report/--no-report', '-r', help='Output summary report file of the crawl.')
     collection_alias: str = typer.Option(
