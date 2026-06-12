@@ -1,16 +1,13 @@
 """This module contains utility functions for the dvmeta package."""
 
 import math
-import os
 from hashlib import sha256
 from pathlib import Path
 
 import jmespath
 import orjson
-from dotenv import load_dotenv
 from loguru import logger
 
-from dvmeta.models.config import Config
 from dvmeta.services.dir_manager import DirManager
 from dvmeta.services.dir_manager import ExportDir
 from dvmeta.services.timestamp import get_file_timestamp
@@ -103,20 +100,6 @@ def orjson_export(data_dict: dict, file_name: str) -> tuple:
     logger.info(f'{file_name} is empty, no json file is created.')
 
     return None, None
-
-
-def load_env() -> Config:
-    """Load the environment variables.
-
-    Returns:
-        Config: A Config instance populated from environment variables
-    """
-    load_dotenv()
-    api_key = os.getenv('API_KEY') or None
-    base_url = os.getenv('BASE_URL', '')
-    semaphore_limit = int(os.getenv('SEMAPHORE_LIMIT', 5))
-
-    return Config(api_key=api_key, base_url=base_url, semaphore_limit=semaphore_limit)
 
 
 def get_data_files_size(dictionary: dict) -> int | str:

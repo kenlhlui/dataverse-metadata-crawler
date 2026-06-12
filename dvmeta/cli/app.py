@@ -27,7 +27,6 @@ from dvmeta.services.report_generation import write_to_report
 from dvmeta.services.spreadsheet import Spreadsheet
 from dvmeta.services.timestamp import Timestamps
 from dvmeta.services.timestamp import get_current_time
-from dvmeta.services.utils import load_env
 
 
 setup_logging()  # Initialize logging at the module level to ensure it's set up before any commands are run
@@ -76,7 +75,7 @@ def main(
     state = CLIState()
     state.timestamps = Timestamps(start_time=get_current_time())
 
-    config = load_env()
+    config = Config()
     config.collection_alias = collection_alias
     config.version = version
     config.api_key = auth if auth else config.api_key

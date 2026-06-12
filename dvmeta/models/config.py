@@ -1,16 +1,26 @@
 """Module for the configuration settings of the metadata crawler."""
 
-from pydantic import BaseModel
-from pydantic import ConfigDict
+from pydantic import AliasChoices
+from pydantic import Field
+from pydantic_settings import BaseSettings
+from pydantic_settings import SettingsConfigDict
 
 
-class Config(BaseModel):
+class Config(BaseSettings):
     """Model for the configuration settings."""
 
-    model_config = ConfigDict(frozen=False)
+    model_config = SettingsConfigDict(env_file='.env')
 
-    api_key: str | None = None
-    base_url: str
+    api_key: str | None = Field(
+        None,
+        validation_alias=AliasChoices(
+            'API_TOKEN',
+            'API_KEY',
+        ),
+    )
+    base_url: str | None = Field(
+        'https://borealisdata.ca/',
+    )
     version: str = ''
     collection_alias: str = ''
     collection_id: int | str | None = None
