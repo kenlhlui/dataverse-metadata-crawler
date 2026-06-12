@@ -48,12 +48,12 @@ to launch the crawler directly in your web browser—no Git or Python installati
    ```sh
    # .env file
    BASE_URL = "TARGET_REPO_URL"  # Base URL of the repository; e.g., "https://demo.borealisdata.ca/"
-   API_KEY = "YOUR_API_KEY"      # Found in your Dataverse account settings. Can also be specified in the CLI interface using the -a flag.
+   API_TOKEN = "YOUR_API_TOKEN"      # Found in your Dataverse account settings. Can also be specified in the CLI interface using the -a flag.
    ```
    Your `.env` file should look like this:
    ```sh
    BASE_URL = "https://demo.borealisdata.ca/"
-   API_KEY = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXX"
+   API_TOKEN = "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXX"
    ```
 
 5. Set up virtual environment and install the package dependencies
@@ -117,7 +117,7 @@ python3 -m dvmeta.cli.app [OPTIONS] COMMAND
 
 | **Option**              | **Short** | **Type** | **Description**                                                                                                                                                                                                 | **Default** |
 |-------------------------|-----------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|
-| --auth                  | -a        | TEXT     | Authentication token to access the Dataverse repository. Can also be set via the `API_KEY` environment variable.                                                                                                | None        |
+| --auth                  | -a        | TEXT     | Authentication token to access the Dataverse repository. Can also be set via the `API_TOKEN` environment variable.                                                                                                | None        |
 | --report / --no-report  | -r        |          | Output summary report file of the crawl.                                                                                                                                                                        | `--report`  |                                                                                                                                      | False       |
 | --spreadsheet           | -s        |          | Output a CSV file of the metadata of datasets.<br>See the [spreadsheet column explanation notes](https://github.com/scholarsportal/dataverse-metadata-crawler/wiki/Explanation-of--Spreadsheet-Column-Headers). | False       |
 | --metadata-source       | -m        | TEXT     | Filter results by metadata source. Useful for filtering harvested datasets.                                                                                                                                     | None        |
@@ -150,7 +150,7 @@ dvmeta -c demo -v latest --semaphore-limit 10 --debug-log run-all
 | File                                          | Description                                                                                                    |
 |-----------------------------------------------|----------------------------------------------------------------------------------------------------------------|
 | `ds_metadata_yyyymmdd-HHMMSS.json`            | Datasets representation & data files metadata in JSON format. Always exported.                                 |
-| `permission_dict_yyyymmdd-HHMMSS.json`        | Permission metadata for all datasets. Exported when API authentication succeeds (`--auth` / `API_KEY`).        |
+| `permission_dict_yyyymmdd-HHMMSS.json`        | Permission metadata for all datasets. Exported when API authentication succeeds (`--auth` / `API_TOKEN`).        |
 | `ds_metadata_yyyymmdd-HHMMSS.csv`             | Datasets and their data files' metadata in CSV format. Always exported with `run-all`.                         |
 | `report_yyyymmdd-HHMMSS.txt`                     | Summary of the crawling work. Exported by default; disabled with `--no-report`.                                   |
 | `debug.log`                                   | Debug log output. Exported with `--debug-log` / `-debug`.                                                      |

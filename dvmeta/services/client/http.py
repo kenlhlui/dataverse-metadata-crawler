@@ -20,8 +20,8 @@ class HttpxClient:
 
         self.header = (
             {'Accept': 'application/json'}
-            if not config.api_key
-            else {'Accept': 'application/json', 'X-Dataverse-key': config.api_key}
+            if not config.api_token
+            else {'Accept': 'application/json', 'X-Dataverse-key': config.api_token}
         )
 
     async def _async_semaphore_client(
@@ -47,11 +47,11 @@ class HttpxClient:
                     request=request,
                 )
 
-    def authenticate_api_key(self) -> bool:
-        """Authenticate the API key for the Dataverse repository.
+    def authenticate_api_token(self) -> bool:
+        """Authenticate the API token for the Dataverse repository.
 
         Returns:
-            bool: True if the API key is valid, False otherwise
+            bool: True if the API token is valid, False otherwise
         """
         try:
             with httpx2.Client(timeout=None, headers=self.header, base_url=self.base_url) as client:
