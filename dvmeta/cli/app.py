@@ -45,6 +45,7 @@ class CLIState:
     report: bool = True
     permission: bool = False
     publication_status: str | None = None
+    path: bool = True
 
     exporter: ExportManager | None = None
     skip_export: bool = False
@@ -66,6 +67,7 @@ def main(
     metadata_source: str = TyperOptions.metadata_source,
     publication_status: str = TyperOptions.publication_status,
     semaphore_limit: int = TyperOptions.semaphore_limit,
+    path: bool = TyperOptions.path,
 ):
     """Step 1: load config and validate inputs. Runs before every subcommand."""
     setup_logging(
@@ -92,6 +94,7 @@ def main(
     state.exporter = ExportManager()
     state.publication_status = publication_status
     state.crawl_result = CrawlResult()
+    state.path = path
     ctx.obj = state
 
 

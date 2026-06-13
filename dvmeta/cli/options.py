@@ -70,3 +70,8 @@ class TyperOptions:
         '-sl',
         help='The maximum number of concurrent tasks when crawling datasets. Please adjust this number based on the expected load on the dataverse repository. Might need some trial and error to find the optimal number.',  # noqa: E501
     )
+    path: bool = typer.Option(
+        True,
+        '--path/--no-path',
+        help='Whether to include the dataset path in the metadata. This requires additional API calls, so it can be disabled if not needed.',
+    )
