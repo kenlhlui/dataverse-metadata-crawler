@@ -9,8 +9,8 @@ from loguru import logger
 
 from dvmeta.models.config import Config
 from dvmeta.models.csv_model import DatasetExportRow
-from dvmeta.models.models import CitationAccessor
-from dvmeta.models.models import DatasetData
+from dvmeta.models.dataverse import CitationAccessor
+from dvmeta.models.dataverse import DatasetData
 from dvmeta.services.dir_manager import DirManager
 from dvmeta.services.dir_manager import ExportDir
 from dvmeta.services.timestamp import get_file_timestamp
