@@ -1,6 +1,8 @@
 """The search parameters for the Dataverse Search API.
 
 Docs: https://borealisdata.ca/guides/en/latest/api/search.html
+
+# Note: the publicationStatus fq seems to be available since 6.4 (https://github.com/IQSS/dataverse/issues/10733).
 """
 
 from enum import StrEnum
