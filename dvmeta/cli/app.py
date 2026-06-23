@@ -1,7 +1,11 @@
+"""The command-line interface (CLI) application for the Dataverse Metadata Crawler."""
+
 import asyncio
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
+import orjson
 import typer
 from loguru import logger
 
@@ -144,6 +148,13 @@ def search(ctx: typer.Context) -> None:
 
         state.crawl_result.dv_dict = state.crawler.get_dataverse_collection_records()
 
+        # DEBUG: Write the search results to a JSON file for debugging purposes
+        Path(DirManager().get_dir(ExportDir.JSON) / 'search_results.json').write_text(
+            orjson.dumps(state.crawl_result.dataset_records, option=orjson.OPT_INDENT_2).decode('utf-8'),
+            encoding='utf-8',
+        )
+        logger.debug('Search results written to search_results.json for debugging purposes.')
+
         logger.info(
             f'Search for datasets in collection "{state.config.collection_alias}" completed. Found {len(state.dataset_ids)} datasets.'  # noqa: E501
         )
@@ -167,7 +178,7 @@ def crawl_metadata(ctx: typer.Context) -> None:
 
         async def _fetch_all() -> tuple[dict, dict]:
             return await asyncio.gather(
-                crawler.get_dataset_metadata(dataset_ids),
+                crawler.get_dataset_metadata(pids, version=state.config.version),
                 crawler.get_oaiore_metadata(pids),
             )
 
@@ -226,7 +237,7 @@ def export_spreadsheet(ctx: typer.Context) -> None:
         if state.crawl_result is None or state.crawl_result.meta_dict is None:
             crawl_metadata(ctx)
 
-        if state.permission and (state.crawl_result.permission_dict is None):
+        if state.permission and state.crawl_result.permission_dict is None:
             crawl_permission(ctx)
 
         assert state.crawl_result is not None

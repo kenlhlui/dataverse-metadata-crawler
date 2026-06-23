@@ -89,22 +89,25 @@ class MetaDataCrawler:
         responses = await self.client.async_get(url_list)
         return [item for response in responses for item in response.json().get('data', {}).get('items', [])]
 
-    async def get_dataset_metadata(self, dataset_ids: list, draft: bool = False) -> dict:
+    async def get_dataset_metadata(self, dataset_pids: list, version: str | None = None) -> dict:
         """Get the metadata of a dataset using the dataset Native API endpoint.
 
         Args:
-            dataset_ids (list): A list of dataset (entity) IDs
-            draft (bool): Whether to fetch the draft version
+            dataset_pids (list): A list of dataset persistent IDs (global_id in search API)
+            version (str | None): The version of the dataset
 
         Returns:
             dict: A dictionary mapping dataset IDs to their metadata
         """
-        url_list = [Endpoints.ds_json(dataset_id, draft=draft) for dataset_id in dataset_ids]
+        url_list: list = [
+            Endpoints.ds_meta_exporters(persistent_id=dataset_pid, exporter='dataverse_json', version=version)
+            for dataset_pid in dataset_pids
+        ]
 
         response = await self.client.async_get(url_list)
 
         return {
-            dataset_id: res.json() for dataset_id, res in zip(dataset_ids, response, strict=False) if res is not None
+            dataset_pid: res.json() for dataset_pid, res in zip(dataset_pids, response, strict=False) if res is not None
         }
 
     async def get_oaiore_metadata(self, pids: list, version: str = 'latest') -> dict:

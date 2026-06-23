@@ -52,8 +52,7 @@ def merge_oaiore_to_meta_dict(meta_dict: dict, oaiore_metadata: dict) -> dict:
         dict: The merged metadata dictionary with OAI-ORE metadata included.
     """
     for dataset_id, dataset_meta in meta_dict.items():
-        dataset_pid = dataset_meta.get('data', {}).get('latestVersion', {}).get('datasetPersistentId')
-        oaiore_meta = oaiore_metadata.get(dataset_pid)
+        oaiore_meta = oaiore_metadata.get(dataset_id)
 
         dataset_meta['dataset_path'] = None
 
@@ -111,8 +110,13 @@ def merge_permission_to_meta_dict(meta_dict: dict, permission_metadata: dict) ->
     Returns:
         dict: The merged metadata dictionary with permission metadata included.
     """
-    for dataset_id, dataset_meta in meta_dict.items():
-        permissions = permission_metadata.get(dataset_id)
+    permission_metadata = {
+        str(k): v for k, v in permission_metadata.items()
+    }  # Convert keys to str for JSON serialization
+
+    for _, dataset_meta in meta_dict.items():
+        dataset_id = dataset_meta.get('id')
+        permissions = permission_metadata.get(str(dataset_id))
         if permissions is not None:
             dataset_meta['permissions'] = permissions
         else:

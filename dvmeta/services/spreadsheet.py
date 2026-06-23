@@ -42,23 +42,23 @@ class Spreadsheet:
 
     @staticmethod
     def _get_data_files_count(dictionary: dict) -> int | str:
-        latest_version = dictionary.get('data', {}).get('latestVersion', {})
+        latest_version = dictionary.get('datasetVersion', {})
         if 'files' in latest_version:
-            return len(jmespath.search('data.latestVersion.files', dictionary))
+            return len(jmespath.search('datasetVersion.files', dictionary))
         return 'Error'
 
     @staticmethod
     def _get_restricted_data_files_count(dictionary: dict) -> int | str:
-        latest_version = dictionary.get('data', {}).get('latestVersion', {})
+        latest_version = dictionary.get('datasetVersion', {})
         if 'files' in latest_version:
-            data_files_count: list = jmespath.search('data.latestVersion.files[?restricted==`true`]', dictionary)
+            data_files_count: list = jmespath.search('datasetVersion.files[?restricted==`true`]', dictionary)
             return len(data_files_count) if data_files_count else 0
         return 'Error'
 
     @staticmethod
     def _get_datafile_meta_usage(dictionary: dict) -> dict:
-        if dictionary.get('data', {}).get('latestVersion', {}).get('files'):
-            file_nested_list = jmespath.search('data.latestVersion.files[*]', dictionary)
+        if dictionary.get('datasetVersion', {}).get('files'):
+            file_nested_list = jmespath.search('datasetVersion.files[*]', dictionary)
             directorylabel_count = len([f for f in file_nested_list if f.get('directoryLabel') is not None])
             categories_count = len([f for f in file_nested_list if f.get('dataFile', {}).get('categories') is not None])
             description_count = len(
@@ -73,11 +73,11 @@ class Spreadsheet:
 
     @staticmethod
     def _get_dataset_version(dataset_meta: dict) -> float | str:
-        latest_version = dataset_meta.get('data', {}).get('latestVersion', {})
-        if latest_version.get('versionState') == 'DRAFT':
+        dataset_version = dataset_meta.get('datasetVersion', {})
+        if dataset_version.get('versionState') == 'DRAFT':
             return 'DRAFT'
-        version_number = latest_version.get('versionNumber')
-        version_minor_number = latest_version.get('versionMinorNumber')
+        version_number = dataset_version.get('versionNumber')
+        version_minor_number = dataset_version.get('versionMinorNumber')
         if version_number is not None and version_minor_number is not None:
             return float(f'{version_number}.{version_minor_number}')
         return 'Error'
@@ -114,7 +114,7 @@ class Spreadsheet:
             'Meta_Journal': 'journal',
             'Meta_CWF': 'computationalworkflow',
         }
-        metadata_blocks = dataset_meta.get('data', {}).get('latestVersion', {}).get('metadataBlocks', {})
+        metadata_blocks = dataset_meta.get('datasetVersion', {}).get('metadataBlocks', {})
         return {key: value in metadata_blocks for key, value in metadata_block_map.items()}
 
     @staticmethod
@@ -165,21 +165,17 @@ class Spreadsheet:
 
         rows = []
         for _, dataset_meta in meta_dict.items():
-            raw_data = dataset_meta.get('data', {})
-            latest_version_data = raw_data.get('latestVersion', {})
-
             dataset = DatasetData.model_validate(
                 {
-                    'id': raw_data.get('id'),
-                    'datasetId': latest_version_data.get('datasetId'),
-                    'latestVersion': latest_version_data,
+                    'id': dataset_meta.get('id'),
+                    'datasetId': dataset_meta.get('datasetVersion', {}).get('datasetId'),
+                    'datasetVersion': dataset_meta.get('datasetVersion', {}),
                 }
             )
-
-            if dataset.latestVersion is None or dataset.latestVersion.metadataBlocks.citation is None:
+            if dataset.datasetVersion is None or dataset.datasetVersion.metadataBlocks.citation is None:
                 continue
 
-            citation = CitationAccessor(dataset.latestVersion.metadataBlocks.citation)
+            citation = CitationAccessor(dataset.datasetVersion.metadataBlocks.citation)
 
             file_stats = self._get_datafile_meta_usage(dataset_meta)
             file_size = get_data_files_size(dataset_meta)
@@ -191,28 +187,28 @@ class Spreadsheet:
                 'DatasetURL': (
                     urljoin(
                         self.config.base_url,
-                        f'/dataset.xhtml?persistentId={dataset.latestVersion.datasetPersistentId}',
+                        f'/dataset.xhtml?persistentId={dataset.datasetVersion.datasetPersistentId}',
                     )
-                    if dataset.latestVersion.datasetPersistentId
+                    if dataset.datasetVersion.datasetPersistentId
                     else ''
                 ),
                 'DS_Path': path_info,
                 'ID': dataset.id,
-                'DatasetPersistentId': dataset.latestVersion.datasetPersistentId,
+                'DatasetPersistentId': dataset.datasetVersion.datasetPersistentId,
                 'DatasetId': dataset.datasetId,
-                'VersionState': dataset.latestVersion.versionState,
-                'LastUpdateTime': dataset.latestVersion.lastUpdateTime,
-                'ReleaseTime': dataset.latestVersion.releaseTime,
-                'CreateTime': dataset.latestVersion.createTime,
+                'VersionState': dataset.datasetVersion.versionState,
+                'LastUpdateTime': dataset.datasetVersion.lastUpdateTime,
+                'ReleaseTime': dataset.datasetVersion.releaseTime,
+                'CreateTime': dataset.datasetVersion.createTime,
                 'Version': str(self._get_dataset_version(dataset_meta)),
                 'FileCount': get_data_files_count(dataset_meta),
                 'FileSize': file_size,
                 'FileSize_normalized': convert_size(file_size),
-                'License': (latest_version_data.get('license') or {}).get('name', ''),
+                'License': dataset.datasetVersion.license.get('name') if dataset.datasetVersion.license else '',
                 'RestrictedFiles': self._get_restricted_data_files_count(dataset_meta),
-                'TermsOfUse': latest_version_data.get('termsOfUse', ''),
-                'RequestAccess': latest_version_data.get('fileAccessRequest', False),
-                'TermsAccess': latest_version_data.get('termsOfAccess', ''),
+                'TermsOfUse': dataset.datasetVersion.termsOfUse,
+                'RequestAccess': dataset.datasetVersion.fileAccessRequest,
+                'TermsAccess': dataset.datasetVersion.termsOfAccess,
                 'DF_Hierarchy': file_stats['DF_Hierarchy'],
                 'DF_Tags': file_stats['DF_Tags'],
                 'DF_Description': file_stats['DF_Description'],
