@@ -119,8 +119,8 @@ class Spreadsheet:
 
     @staticmethod
     def _parse_permission_values(dataset_meta: dict) -> dict:
-        permission_info = dataset_meta.get('permission_info', {})
-        if permission_info.get('status') == 'NA':
+        permission_info = dataset_meta.get('permissions', {})
+        if permission_info.get('status') != 'OK':
             return {
                 'DS_Permission': False,
                 'DS_Collab': 'NA',
