@@ -75,12 +75,12 @@ class Endpoints:
         Docs: https://borealisdata.ca/guides/en/latest/api/native-api.html#view-a-dataverse-collection
 
         Args:
-            dataverse_id (str): The database ID or alias of a dataverse collection. Can also be speical value `root` for the root collection.
+            dataverse_id (str): The database ID or alias of a dataverse collection. Can also be special value `root` for the root collection.
 
         Returns:
             str: The dataverse JSON representation endpoint
 
-        """
+        """  # noqa: E501, W505
         return f'api/dataverses/{dataverse_id}'
 
     @staticmethod
