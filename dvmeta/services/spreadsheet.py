@@ -167,7 +167,7 @@ class Spreadsheet:
         for _, dataset_meta in meta_dict.items():
             dataset = DatasetData.model_validate(
                 {
-                    'id': dataset_meta.get('id'),
+                    'id': dataset_meta.get('datasetVersion', {}).get('id'),
                     'datasetId': dataset_meta.get('datasetVersion', {}).get('datasetId'),
                     'datasetVersion': dataset_meta.get('datasetVersion', {}),
                 }
