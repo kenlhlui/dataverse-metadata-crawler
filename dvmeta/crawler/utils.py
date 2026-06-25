@@ -137,7 +137,7 @@ def get_total_count_from_response(response: dict) -> int:
     return response.get('data', {}).get('total_count', 0)
 
 
-def get_start_parameters(total_count: int, per_page: int) -> tuple[int]:
+def get_start_parameters(total_count: int, per_page: int) -> tuple[int, ...]:
     """Calculate the start parameters for pagination.
 
     Args:
@@ -145,7 +145,7 @@ def get_start_parameters(total_count: int, per_page: int) -> tuple[int]:
         per_page (int): The number of items per page.
 
     Returns:
-        tuple[int]: A tuple of `start` parameters for to use in the pagination of the API requests.
+        tuple[int, ...]: A tuple of `start` parameters for to use in the pagination of the API requests.
     """
     if per_page <= 0:
         msg = 'per_page must be a positive integer.'
@@ -158,4 +158,4 @@ def get_start_parameters(total_count: int, per_page: int) -> tuple[int]:
 
     indexes = list(range(0, total_count, per_page))
 
-    return tuple(indexes)  # ty:ignore[invalid-return-type]
+    return tuple(indexes)
