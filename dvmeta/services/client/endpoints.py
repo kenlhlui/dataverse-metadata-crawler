@@ -21,6 +21,8 @@ class Endpoints:
 
         Docs: https://borealisdata.ca/guides/en/latest/api/native-api.html#get-json-representation-of-a-dataset
 
+        Note: This endpoint is currently not used. Just for keeping and future use.
+
         Args:
             dataset_id (str | int): The database ID of the dataset
             draft (bool): Whether to fetch the draft version
@@ -54,8 +56,6 @@ class Endpoints:
 
         Docs: https://borealisdata.ca/guides/en/latest/api/native-api.html#export-metadata-of-a-dataset-in-various-formats
 
-        Note: This is mainly for getting the path of the dataset from OAI_ORE metadata. It works the best with No version provided.
-
         Args:
             persistent_id (str): The persistent ID of the dataset
             version (str | None): The version of the dataset
@@ -65,7 +65,7 @@ class Endpoints:
             str: The dataset metadata exporters endpoint
         """  # noqa: E501, W505
         if version is not None and isinstance(version, str):
-            return f'api/datasets/export?exporter={exporter}&persistentId={persistent_id}&version={version}'
+            return f'api/datasets/export?exporter={exporter}&persistentId={persistent_id}&version=:{version}'
         return f'api/datasets/export?exporter={exporter}&persistentId={persistent_id}'
 
     @staticmethod
@@ -75,12 +75,12 @@ class Endpoints:
         Docs: https://borealisdata.ca/guides/en/latest/api/native-api.html#view-a-dataverse-collection
 
         Args:
-            dataverse_id (str): The database ID or alias of a dataverse collection. Can also be speical value `root` for the root collection.
+            dataverse_id (str): The database ID or alias of a dataverse collection. Can also be special value `root` for the root collection.
 
         Returns:
             str: The dataverse JSON representation endpoint
 
-        """
+        """  # noqa: E501, W505
         return f'api/dataverses/{dataverse_id}'
 
     @staticmethod

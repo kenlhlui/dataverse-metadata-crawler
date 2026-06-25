@@ -13,7 +13,7 @@ class TyperOptions:
         None,
         '--auth',
         '-a',
-        help='Authentication token to access the dataverse repository',
+        help='Authentication token to access the dataverse repository. The environment variable API_TOKEN will always override this option.',  # noqa: E501
         hide_input=True,
         envvar='API_TOKEN',
     )
@@ -27,18 +27,18 @@ class TyperOptions:
         prompt_required=True,
     )
     version: str = typer.Option(
-        ...,
+        'latest',
         '--version',
         '-v',
         help=(
-            'The dataset version to crawl. Options are:\n'
-            "  'draft' - the draft version, if any\n"
-            "  'latest' - either a draft (if exists) or the latest published version\n"
-            "  'latest-published' - the latest published version\n"
-            "  'x.y' - a specific version, where x is the major version number and y is the minor version number\n"
-            "  'x' - same as 'x.0'"
+            'The dataset version to crawl. Options are:'
+            '  "draft" - the draft version, if any'
+            '  "latest" - either a draft (if exists) or the latest published version'
+            '  "latest-published" - the latest published version'
+            '  "x.y" - a specific version, where x is the major version number and y is the minor version number'
+            '  "x" - same as "x.0"'
         ),
-        prompt_required=True,
+        prompt_required=False,
         callback=validate_version_type,
     )
     debug_log: bool = typer.Option(
@@ -50,19 +50,19 @@ class TyperOptions:
     log_level: str = typer.Option(
         LogLevel.INFO,
         '--log-level',
-        help=f'The logging level for console and file output. Options are: {", ".join(LogLevel.__members__.keys())}. Default is INFO.',
+        help=f'The logging level for console and file output. Options are: {", ".join(LogLevel.__members__.keys())}.',
     )
     metadata_source: str = typer.Option(
         None,
         '--metadata-source',
         '-m',
-        help='The source of the metadata to crawl. This option can be used to filter harvested datasets.',
+        help='The source of the metadata to crawl. This option can be used to exclude harvested datasets (that does not host directly on the installation).',  # noqa: E501
     )
     publication_status: str = typer.Option(
         None,
         '--publication-status',
         '-ps',
-        help='The publication status of the datasets to crawl. Common values are "Published", "Draft", "Unpublished", "Deaccessioned". Depends on the installation',  # noqa: E501
+        help='The publication status of the datasets to crawl. Common values are "Published", "Draft", "Unpublished", "Deaccessioned". Depends on the installation.',  # noqa: E501
     )
     semaphore_limit: int = typer.Option(
         5,

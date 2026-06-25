@@ -16,7 +16,7 @@ class DvResponse(BaseModel):
     data: dict
 
 
-class DatasetVersion(BaseModel):
+class DatasetVersionTags(BaseModel):
     """Permitted dataset version type."""
 
     version: Literal['draft', 'latest', 'latest-published'] | float | int
@@ -74,7 +74,7 @@ class MetadataBlocks(BaseModel):
     citation: MetadataBlock | None = None
 
 
-class LatestVersion(BaseModel):
+class DatasetVersion(BaseModel):
     """Dataverse latest version."""
 
     datasetPersistentId: str | None = None
@@ -82,6 +82,12 @@ class LatestVersion(BaseModel):
     lastUpdateTime: str | None = None
     releaseTime: str | None = None
     createTime: str | None = None
+    termsOfUse: str | None = None
+    termsOfAccess: str | None = None
+    contactForAccess: str | None = None
+    datasetType: str | None = None
+    license: dict[str, object] | None = None
+    fileAccessRequest: bool | None = None
 
     metadataBlocks: MetadataBlocks = Field(default_factory=MetadataBlocks)
 
@@ -92,7 +98,7 @@ class DatasetData(BaseModel):
     id: int | None = None
     datasetId: int | None = None
 
-    latestVersion: LatestVersion | None = None
+    datasetVersion: DatasetVersion | None = None
 
 
 class CitationAccessor:

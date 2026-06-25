@@ -52,8 +52,7 @@ def merge_oaiore_to_meta_dict(meta_dict: dict, oaiore_metadata: dict) -> dict:
         dict: The merged metadata dictionary with OAI-ORE metadata included.
     """
     for dataset_id, dataset_meta in meta_dict.items():
-        dataset_pid = dataset_meta.get('data', {}).get('latestVersion', {}).get('datasetPersistentId')
-        oaiore_meta = oaiore_metadata.get(dataset_pid)
+        oaiore_meta = oaiore_metadata.get(dataset_id)
 
         dataset_meta['dataset_path'] = None
 
@@ -111,8 +110,13 @@ def merge_permission_to_meta_dict(meta_dict: dict, permission_metadata: dict) ->
     Returns:
         dict: The merged metadata dictionary with permission metadata included.
     """
-    for dataset_id, dataset_meta in meta_dict.items():
-        permissions = permission_metadata.get(dataset_id)
+    permission_metadata = {
+        str(k): v for k, v in permission_metadata.items()
+    }  # Convert keys to str for JSON serialization
+
+    for _, dataset_meta in meta_dict.items():
+        dataset_id = dataset_meta.get('id')
+        permissions = permission_metadata.get(str(dataset_id))
         if permissions is not None:
             dataset_meta['permissions'] = permissions
         else:
@@ -133,7 +137,7 @@ def get_total_count_from_response(response: dict) -> int:
     return response.get('data', {}).get('total_count', 0)
 
 
-def get_start_parameters(total_count: int, per_page: int) -> tuple[int]:
+def get_start_parameters(total_count: int, per_page: int) -> tuple[int, ...]:
     """Calculate the start parameters for pagination.
 
     Args:
@@ -141,7 +145,7 @@ def get_start_parameters(total_count: int, per_page: int) -> tuple[int]:
         per_page (int): The number of items per page.
 
     Returns:
-        tuple[int]: A tuple of `start` parameters for to use in the pagination of the API requests.
+        tuple[int, ...]: A tuple of `start` parameters for to use in the pagination of the API requests.
     """
     if per_page <= 0:
         msg = 'per_page must be a positive integer.'
@@ -154,4 +158,4 @@ def get_start_parameters(total_count: int, per_page: int) -> tuple[int]:
 
     indexes = list(range(0, total_count, per_page))
 
-    return tuple(indexes)  # ty:ignore[invalid-return-type]
+    return tuple(indexes)

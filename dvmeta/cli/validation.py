@@ -5,7 +5,7 @@ from pydantic import ValidationError
 from typer import BadParameter
 
 from dvmeta.models.config import Config
-from dvmeta.models.dataverse import DatasetVersion
+from dvmeta.models.dataverse import DatasetVersionTags
 from dvmeta.services.client.http import HttpxClient
 
 
@@ -24,7 +24,7 @@ def validate_version_type(value: str) -> str | float:
     value = value.lower().strip()
 
     try:
-        model = DatasetVersion.model_validate({'version': value})
+        model = DatasetVersionTags.model_validate({'version': value})
         return model.version
     except ValidationError:
         msg = f'Invalid version: {value}. Must be "draft", "latest", "latest-published", or a number like "1" or "1.2".'

@@ -205,7 +205,7 @@ BibTeX:
   title = {Dataverse Metadata Crawler},
   url = {https://github.com/scholarsportal/dataverse-metadata-crawler},
   version = {0.1.7},
-  year = {2025}
+  year = {2026}
 }
 ```
 
