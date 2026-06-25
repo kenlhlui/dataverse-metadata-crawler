@@ -18,7 +18,7 @@ class Config(BaseSettings):
             'API_KEY',  # Keep for backward compatibility.
         ),
     )
-    base_url: str | None = Field(
+    base_url: str = Field(
         'https://borealisdata.ca/',
     )
     version: str = Field(
