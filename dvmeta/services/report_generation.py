@@ -74,11 +74,9 @@ def write_to_report(  # noqa:  PLR0913
         json_file_checksum_dict=crawl_result.export_data,
     )
 
-    log_file_path = f'{DirManager().get_dir(ExportDir.LOG)}/report_{get_file_timestamp()}.txt'
+    log_file_path = Path(DirManager().get_dir(ExportDir.LOG)) / f'report_{get_file_timestamp()}.txt'
 
-    Path(DirManager().get_dir(ExportDir.LOG) / f'report_{get_file_timestamp()}.txt').write_text(
-        rendered, encoding='utf-8'
-    )
+    Path(log_file_path).write_text(rendered, encoding='utf-8')
 
     logger.info(f'The crawl report is saved at: {log_file_path}')
 
