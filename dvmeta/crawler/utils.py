@@ -121,7 +121,10 @@ def merge_permission_to_meta_dict(meta_dict: dict, permission_metadata: dict) ->
             dataset_meta['permissions'] = permissions
         else:
             logger.debug(f'No permission metadata found for dataset ID {dataset_id}.')
-            dataset_meta['permissions'] = None
+
+    # Add dataset_meta['permissions'] = None to standardize the output for datasets without permissions
+    for dataset_meta in meta_dict.values():
+        dataset_meta.setdefault('permissions', None)
 
     return meta_dict
 
