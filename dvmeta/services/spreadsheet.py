@@ -143,12 +143,8 @@ class Spreadsheet:
             'DS_Member': len([p for p in data if p.get('_roleAlias') == 'member']),
         }
 
-    def _get_spreadsheet_order(self) -> list[str]:
-        with Path(self.spreadsheet_order_file_path).open(encoding='utf-8') as file:
-            return file.read().splitlines()
-
     def _get_column_order(self, row_keys: list[str]) -> list[str]:
-        order_list = self._get_spreadsheet_order()
+        order_list = Path(self.spreadsheet_order_file_path).read_text(encoding='utf-8').splitlines()
         valid_columns = [col for col in order_list if col in row_keys]
         return valid_columns + [col for col in row_keys if col not in valid_columns]
 
