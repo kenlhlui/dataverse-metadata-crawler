@@ -1,4 +1,4 @@
-"""Module to generate log file."""
+"""Module to generate crawl report file."""
 
 from pathlib import Path
 
@@ -52,15 +52,12 @@ def write_to_report(  # noqa:  PLR0913
     timestamps: Timestamps,
     crawl_result: CrawlResult,
 ) -> None:
-    """Write the crawl log to a file.
+    """Write the crawl report to a file.
 
     Args:
         config (dict): Configuration dictionary
         timestamps (Timestamps): Timestamps object containing start and end times
         crawl_result (CrawlResult): Result object containing all crawled data
-
-    Returns:
-        str: Path to the log file
     """
     report = Template(read_template())
     rendered = report.render(
@@ -79,14 +76,15 @@ def write_to_report(  # noqa:  PLR0913
 
     log_file_path = f'{DirManager().get_dir(ExportDir.LOG)}/report_{get_file_timestamp()}.txt'
 
-    with Path(log_file_path).open('w', encoding='utf-8') as file:
-        file.write(rendered)
+    Path(DirManager().get_dir(ExportDir.LOG) / f'report_{get_file_timestamp()}.txt').write_text(
+        rendered, encoding='utf-8'
+    )
 
-    return logger.info(f'The crawl log is saved at: {log_file_path}')
+    logger.info(f'The crawl report is saved at: {log_file_path}')
 
 
 def read_template() -> str:
-    """Read the log template file from res directory.
+    """Read the crawl report template file from res directory.
 
     Returns:
         str: Content of the template file as string
@@ -97,7 +95,7 @@ def read_template() -> str:
     report_template_path = Path('res/report_template.txt')
 
     if not report_template_path.is_file():
-        logger.warning(f'Template file not found at {report_template_path}. Using default template.')
+        logger.warning(f'Crawl report template file not found at {report_template_path}. Using default template.')
         return DEFAULT_REPORT_TEMPLATE
 
     with Path('res/report_template.txt').open(encoding='utf-8') as file:
