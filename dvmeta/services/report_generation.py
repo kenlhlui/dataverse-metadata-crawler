@@ -83,8 +83,10 @@ def write_to_report(  # noqa:  PLR0913
     logger.info(f'The crawl report is saved at: {log_file_path}')
 
 
-def read_template() -> str:
+def read_template(template_path: str | Path = 'res/report_template.txt') -> str:
     """Read the crawl report template file from res directory.
+
+    TODO: allow this to be set in a config file or command line argument.
 
     Returns:
         str: Content of the template file as string
@@ -92,11 +94,10 @@ def read_template() -> str:
     Raises:
         FileNotFoundError: If template file doesn't exist
     """
-    report_template_path = Path('res/report_template.txt')
+    report_template_path = Path(template_path)
 
     if not report_template_path.is_file():
         logger.warning(f'Crawl report template file not found at {report_template_path}. Using default template.')
         return DEFAULT_REPORT_TEMPLATE
 
-    with Path('res/report_template.txt').open(encoding='utf-8') as file:
-        return file.read()
+    return report_template_path.read_text(encoding='utf-8')
