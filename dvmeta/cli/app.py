@@ -2,10 +2,8 @@
 
 import asyncio
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any
 
-import orjson
 import typer
 from loguru import logger
 
@@ -147,14 +145,6 @@ def search(ctx: typer.Context) -> None:
         state.dataset_ids = parse_search_response(state.crawl_result.dataset_records)
 
         state.crawl_result.dv_dict = state.crawler.get_dataverse_collection_records()
-
-        # DEBUG: Write the search results to a JSON file for debugging purposes
-        Path(DirManager().get_dir(ExportDir.JSON) / 'search_results.json').write_text(
-            orjson.dumps(state.crawl_result.dataset_records, option=orjson.OPT_INDENT_2).decode('utf-8'),
-            encoding='utf-8',
-        )
-        logger.debug('Search results written to search_results.json for debugging purposes.')
-
         logger.info(
             f'Search for datasets in collection "{state.config.collection_alias}" completed. Found {len(state.dataset_ids)} datasets.'  # noqa: E501
         )
