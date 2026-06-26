@@ -57,7 +57,7 @@ class CLIState:
 
 
 @app.callback()
-def main(
+def main(  # noqa: PLR0913, PLR0917
     ctx: typer.Context,
     auth: str = TyperOptions.auth,
     report: bool = TyperOptions.report,
@@ -68,7 +68,7 @@ def main(
     metadata_source: str = TyperOptions.metadata_source,
     publication_status: str = TyperOptions.publication_status,
     semaphore_limit: int = TyperOptions.semaphore_limit,
-):
+) -> None:
     """Step 1: load config and validate inputs. Runs before every subcommand."""
     setup_logging(
         DirManager().get_dir(ExportDir.LOG) if debug_log else None, log_level=log_level
@@ -98,6 +98,7 @@ def main(
 
 
 def get_state(ctx: typer.Context) -> CLIState:
+    """Retrieve the CLI state from the Typer context."""
     state = ctx.obj
     if state is None:
         msg = 'CLI state not initialized'
