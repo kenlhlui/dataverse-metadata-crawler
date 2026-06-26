@@ -60,7 +60,7 @@ class MetaDataCrawler:
         return response.json() if response and response.json() is not None else {}
 
     async def get_dataverse_ds_records_async(
-        self, start_parameters: tuple[int], search_params: DataverseSearchParams
+        self, start_parameters: tuple[int, ...], search_params: DataverseSearchParams
     ) -> list:
         """Asynchronously get the dataset records in the Dataverse collection (recursively, including all the children).
 
