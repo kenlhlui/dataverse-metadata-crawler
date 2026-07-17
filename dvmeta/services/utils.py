@@ -56,22 +56,6 @@ def gen_checksum(file_path: Path) -> str:
     return sha256_hash.hexdigest()  # Return the hexadecimal digest of the hash
 
 
-def list_to_string(list: list) -> str:
-    """Joins list items into comma-separated string after converting to string and stripping whitespace.
-
-    Args:
-        list (list): A list of values to be processed.
-
-    Returns:
-        str: A single string with the processed values separated by commas.
-    """
-    # Ensure each value is a string and strip whitespace from each string
-    stripped_values = [str(value).strip() for value in list]
-
-    # Join the stripped strings with a comma
-    return ', '.join(stripped_values)
-
-
 def get_data_files_size(dictionary: dict) -> int | str:
     """Calculate the total size of data files in bytes from a dataset metadata dictionary.
 
