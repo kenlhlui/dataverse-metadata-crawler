@@ -5,12 +5,6 @@ from hashlib import sha256
 from pathlib import Path
 
 import jmespath
-import orjson
-from loguru import logger
-
-from dvmeta.services.dir_manager import DirManager
-from dvmeta.services.dir_manager import ExportDir
-from dvmeta.services.timestamp import get_file_timestamp
 
 
 def count_key(key: dict | list | tuple) -> int:
@@ -76,30 +70,6 @@ def list_to_string(list: list) -> str:
 
     # Join the stripped strings with a comma
     return ', '.join(stripped_values)
-
-
-def orjson_export(data_dict: dict, file_name: str) -> tuple:
-    """Export a dictionary to a json file using the orjson library.
-
-    Args:
-        data_dict (dict): The dictionary to export to a json file.
-        file_name (str): The name of the json file to create.
-
-    Returns:
-        tuple(Path, str): A tuple containing the path to the created json file and its checksum.
-    """
-    json_dir = DirManager().get_dir(ExportDir.JSON)
-    json_file_path = Path(json_dir, f'{file_name}_{get_file_timestamp()}.json')
-    if data_dict:
-        with json_file_path.open('wb') as file:  # Open file in binary write mode
-            file.write(orjson.dumps(data_dict, option=orjson.OPT_INDENT_2 | orjson.OPT_NON_STR_KEYS))
-        checksum = gen_checksum(json_file_path)
-        logger.info(f'Exported {file_name} to json file: {json_file_path}\nChecksum (SHA-256): {checksum}')
-
-        return json_file_path, checksum
-    logger.info(f'{file_name} is empty, no json file is created.')
-
-    return None, None
 
 
 def get_data_files_size(dictionary: dict) -> int | str:
