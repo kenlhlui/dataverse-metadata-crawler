@@ -24,7 +24,7 @@ from dvmeta.models.search_params import ItemType
 from dvmeta.services.custom_logging import setup_logging
 from dvmeta.services.dir_manager import ExportDir
 from dvmeta.services.dir_manager import get_dir
-from dvmeta.services.exporter import ExportManager
+from dvmeta.services.exporter import export_json
 from dvmeta.services.report_generation import write_to_report
 from dvmeta.services.spreadsheet import Spreadsheet
 from dvmeta.services.timestamp import Timestamps
@@ -48,12 +48,13 @@ class CLIState:
     permission: bool = False
     publication_status: str | None = None
 
-    exporter: ExportManager | None = None
     skip_export: bool = False
     auth_status: bool = False
 
     dataset_records: Any | None = None
     dataset_ids: list[str] | None = None
+
+    timestamps_enabled: bool = True
 
 
 @app.callback()
@@ -68,6 +69,7 @@ def main(  # noqa: PLR0913, PLR0917
     metadata_source: str = TyperOptions.metadata_source,
     publication_status: str = TyperOptions.publication_status,
     semaphore_limit: int = TyperOptions.semaphore_limit,
+    timestamp_enabled: bool = TyperOptions.timestamp_enabled,
 ) -> None:
     """Step 1: load config and validate inputs. Runs before every subcommand."""
     setup_logging(
@@ -76,6 +78,8 @@ def main(  # noqa: PLR0913, PLR0917
 
     state = CLIState()
     state.timestamps = Timestamps(start_time=get_current_time())
+    state.timestamps_enabled = timestamp_enabled
+    logger.debug(f'CLI state initialized with timestamps_enabled={timestamp_enabled}')
 
     config = Config()
     config.collection_alias = collection_alias
@@ -91,7 +95,6 @@ def main(  # noqa: PLR0913, PLR0917
 
     state.config = config
     state.report = report
-    state.exporter = ExportManager()
     state.publication_status = publication_status
     state.crawl_result = CrawlResult()
     ctx.obj = state
@@ -179,7 +182,7 @@ def crawl_metadata(ctx: typer.Context) -> None:
         state.crawl_result.meta_dict = merge_oaiore_to_meta_dict(meta_dict, oaiore_metadata)
 
         if not state.skip_export:
-            state.exporter.export(state.crawl_result.meta_dict, export_type='ds_metadata')
+            export_json(state.crawl_result.meta_dict, export_type='ds_metadata')
 
         if state.report:
             state.timestamps.end_time = get_current_time()
@@ -205,14 +208,13 @@ def crawl_permission(ctx: typer.Context) -> None:
             return
         assert state.crawler is not None
         assert state.dataset_ids is not None
-        assert state.exporter is not None
         assert state.config is not None
         assert state.crawl_result is not None
 
         state.crawl_result.permission_dict = asyncio.run(state.crawler.get_dataset_permissions(state.dataset_ids))
 
         if not state.skip_export:
-            state.exporter.export(state.crawl_result.permission_dict, export_type='permission')
+            export_json(state.crawl_result.permission_dict, export_type='permission')
 
         logger.info(
             f'Permission metadata for collection "{state.config.collection_alias}" completed. Crawled {len(state.crawl_result.permission_dict)} records.'  # noqa: E501
@@ -252,13 +254,12 @@ def run_all(ctx: typer.Context) -> None:
     crawl_permission(ctx)
 
     assert state.crawl_result is not None
-    assert state.exporter is not None
     if state.crawl_result.permission_dict:
         state.crawl_result.meta_dict = merge_permission_to_meta_dict(
             state.crawl_result.meta_dict, state.crawl_result.permission_dict
         )
 
-    state.exporter.export(state.crawl_result.meta_dict, export_type='ds_metadata')
+    export_json(state.crawl_result.meta_dict, export_type='ds_metadata')
     export_spreadsheet(ctx)
 
     if report:
