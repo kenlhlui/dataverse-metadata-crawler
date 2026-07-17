@@ -19,6 +19,7 @@ from dvmeta.crawler.utils import merge_permission_to_meta_dict
 from dvmeta.crawler.utils import parse_search_response
 from dvmeta.models.config import Config
 from dvmeta.models.crawl_result import CrawlResult
+from dvmeta.models.log_level import LogLevel
 from dvmeta.models.search_params import DataverseSearchParams
 from dvmeta.models.search_params import ItemType
 from dvmeta.services.custom_logging import setup_logging
@@ -65,13 +66,15 @@ def main(  # noqa: PLR0913, PLR0917
     collection_alias: str = TyperOptions.collection_alias,
     version: str = TyperOptions.version,
     debug_log: bool = TyperOptions.debug_log,
-    log_level: str = TyperOptions.log_level,
+    log_level: LogLevel | None = TyperOptions.log_level,
     metadata_source: str = TyperOptions.metadata_source,
     publication_status: str = TyperOptions.publication_status,
     semaphore_limit: int = TyperOptions.semaphore_limit,
     timestamp_enabled: bool = TyperOptions.timestamp_enabled,
 ) -> None:
     """Step 1: load config and validate inputs. Runs before every subcommand."""
+    config = Config()
+    log_level = log_level or config.log_level  # CLI flag wins over LOG_LEVEL in .env
     setup_logging(
         get_dir(ExportDir.LOG) if debug_log else None, log_level=log_level
     )  # Reconfigure logging if debug_log is set, otherwise use default configuration
@@ -79,9 +82,7 @@ def main(  # noqa: PLR0913, PLR0917
     state = CLIState()
     state.timestamps = Timestamps(start_time=get_current_time())
     state.timestamps_enabled = timestamp_enabled
-    logger.debug(f'CLI state initialized with timestamps_enabled={timestamp_enabled}')
 
-    config = Config()
     config.collection_alias = collection_alias
     config.version = version
     config.api_token = auth if auth else config.api_token
