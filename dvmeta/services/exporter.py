@@ -5,8 +5,8 @@ from pathlib import Path
 import orjson
 from loguru import logger
 
-from dvmeta.services.dir_manager import DirManager
 from dvmeta.services.dir_manager import ExportDir
+from dvmeta.services.dir_manager import get_dir
 from dvmeta.services.timestamp import get_file_timestamp
 from dvmeta.services.utils import gen_checksum
 
@@ -42,15 +42,11 @@ class ExportManager:
         # Get description from presets or use custom if provided
         description = self.DESCRIPTIONS.get(export_type, f'Export of {export_type}')
 
-        # Get the JSON DIR
-        json_dir = DirManager().get_dir(ExportDir.JSON)
-
         # Get the json file path with timestamp
-        json_file_path = Path(json_dir, f'{export_type}_{get_file_timestamp()}.json')
+        json_file_path = get_dir(ExportDir.JSON) / f'{export_type}_{get_file_timestamp()}.json'
 
         # Export the file if data is a non-empty dictionary
         if isinstance(data, dict) and data:
-            Path(json_dir).mkdir(parents=True, exist_ok=True)  # Ensure the directory exists
             json_file_path.write_bytes(orjson.dumps(data, option=orjson.OPT_INDENT_2 | orjson.OPT_NON_STR_KEYS))
             checksum = gen_checksum(json_file_path)
             logger.info(
